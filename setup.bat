@@ -7,4 +7,4 @@ call venv\Scripts\activate
 
 pip install -r requirements.txt
 
-python desktop.py --debug
+python desktop.py
