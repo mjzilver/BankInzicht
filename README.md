@@ -9,11 +9,11 @@ BankInzicht is een Python-applicatie waarmee je eenvoudig overzichten en grafiek
 - **Rabobank**
 
 ### Overzichten en Analyses
-- 📊 **Maandelijkse overzichten** - Inkomsten, uitgaven en netto per maand
-- 🏢 **Tegenpartij analyse** - Overzicht per tegenpartij met netto bedragen
-- 🏷️ **Label categorisering** - Groepeer transacties op eigen labels
-- 💼 **Zakelijk/Privé scheiding** - Filter en analyseer zakelijke vs. privé uitgaven
-- 📈 **Grafieken** - Visuele weergave van financiële data
+- **Maandelijkse overzichten** - Inkomsten, uitgaven en netto per maand
+- **Tegenpartij analyse** - Overzicht per tegenpartij met netto bedragen
+- **Label categorisering** - Groepeer transacties op eigen labels
+- **Zakelijk/Privé scheiding** - Filter en analyseer zakelijke vs. privé uitgaven
+- **Grafieken** - Visuele weergave van financiële data
 
 ### Functionaliteiten
 - **Automatische IBAN filtering** - Interne overboekingen worden automatisch gefilterd

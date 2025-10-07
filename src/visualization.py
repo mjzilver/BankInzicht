@@ -157,7 +157,7 @@ def plot_monthly_overview(monthly):
     ax.set_xticks(x + width / 4)
     ax.set_xticklabels(months, rotation=45, ha="right")
     ax.legend(title="Labelkleur en soort", bbox_to_anchor=(1.05, 1), loc="upper left")
-    ax.set_title("Maandelijkse Inkomsten/Uitgaven per Label")
+    ax.set_title("Maandelijkse Inkomsten -- Gestreept is negatief")
     ax.margins(y=0.1)
     plt.tight_layout()
     return fig
