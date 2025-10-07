@@ -315,6 +315,10 @@ class FinanceApp(QWidget):
 
 def main():
     app = QApplication(sys.argv)
+
+    with open("style/main.qss", "r") as f:
+        app.setStyleSheet(f.read())
+
     win = FinanceApp()
     win.show()
     sys.exit(app.exec())

@@ -6,12 +6,12 @@ set "ENTRY=%SRC_DIR%\app.py"
 set "VENV_DIR=venv"
 set "REQS=requirements.txt"
 
-if "%1"=="build" goto build
+if "%1"=="install" goto install
 if "%1"=="run" goto run
 if "%1"=="format" goto format
 goto end
 
-:build
+:install
     call "%VENV_DIR%\Scripts\activate.bat"
 
     if exist "%REQS%" (
