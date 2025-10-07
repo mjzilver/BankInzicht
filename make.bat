@@ -11,24 +11,27 @@ if "%1"=="run" goto run
 if "%1"=="format" goto format
 goto end
 
-:install
+:activate_venv 
     call "%VENV_DIR%\Scripts\activate.bat"
+    exit /b 0
 
-    if exist "%REQS%" (
-        pip install -r "%REQS%"
-    ) else (
-        echo No requirements.txt found.
+:install
+    if not exist "%VENV_DIR%" (
+        python -m venv "%VENV_DIR%"
     )
+    call :activate_venv
+
+    pip install -r "%REQS%"
+    
     goto end
 
 :run
-    call "%VENV_DIR%\Scripts\activate.bat"
-
+    call :activate_venv
     python "%ENTRY%"
     goto end
 
 :format
-    call "%VENV_DIR%\Scripts\activate.bat"
+    call :activate_venv
 
     for /R "%SRC_DIR%" %%f in (*.py) do (
         black "%%f"
