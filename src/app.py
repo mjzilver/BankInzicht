@@ -1,3 +1,4 @@
+import os
 import sys
 import pandas as pd
 from PyQt6.QtWidgets import (
@@ -78,6 +79,11 @@ class FinanceApp(QWidget):
 
         init_db()
         self.df = clean_transactions(load_csvs(settings.DATA_DIR))
+
+        if self.df.empty:
+            self.show_empty()
+            return
+
         self.summary_df = summarize_by_counterparty_per_month(self.df)
         self.summary_df["Maand_NL"] = self.summary_df["Maand"].apply(format_month)
         self.summary_df = self.summary_df.sort_values(
@@ -312,11 +318,22 @@ class FinanceApp(QWidget):
 
         self.update_all_views()
 
+    def show_empty(self):
+        layout = QVBoxLayout(self)
+        msg = QLabel(
+            "Geen transactiebestanden gevonden.\n"
+            "Plaats CSV-bestanden in de data-map en start de applicatie opnieuw."
+        )
+        msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(msg)
+        self.setLayout(layout)
+
 
 def main():
     app = QApplication(sys.argv)
 
-    with open("style/main.qss", "r") as f:
+    styleFile = os.path.join("style", "main.qss")
+    with open(styleFile, "r") as f:
         app.setStyleSheet(f.read())
 
     win = FinanceApp()

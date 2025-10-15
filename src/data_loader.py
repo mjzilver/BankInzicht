@@ -119,6 +119,9 @@ def shared_cleaning(df, counterparty_col):
 
 
 def clean_transactions(df):
+    if df.empty:
+        return df
+
     bank_type = detect_bank_format(df)
     if bank_type == "UNKNOWN":
         raise ValueError("Unsupported bank format detected.")
