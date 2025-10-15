@@ -1,0 +1,135 @@
+QWidget {
+    background-color: #2b2b2b;
+    color: #e0e0e0;
+    font-family: "Segoe UI", "Roboto";
+    font-size: 10pt;
+}
+
+QTabWidget::pane {
+    border: 1px solid #3c3c3c;
+    border-radius: 8px;
+    background-color: #333333;
+    padding: 4px;
+}
+
+QTabBar::tab {
+    background: #3a3a3a;
+    color: #dddddd;
+    border: 1px solid #3c3c3c;
+    border-bottom: none;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    padding: 5px 10px;
+    margin-right: 2px;
+}
+
+QTabBar::tab:hover {
+    background: #444444;
+}
+
+QTabBar::tab:selected {
+    background: #222222;
+    color: #ffffff;
+    font-weight: 500;
+}
+
+QComboBox {
+    background-color: #3a3a3a;
+    border: 1px solid #4a4a4a;
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: #e0e0e0;
+}
+
+QComboBox:hover {
+    border-color: #5fa8f0;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #2f2f2f;
+    border: 1px solid #555555;
+    selection-background-color: #5fa8f0;
+    selection-color: #ffffff;
+    border-radius: 4px;
+}
+
+QPushButton {
+    background-color: #3a3a3a;
+    border: 1px solid #555555;
+    border-radius: 6px;
+    padding: 4px 10px;
+    color: #e0e0e0;
+}
+
+QPushButton:hover {
+    background-color: #4a4a4a;
+}
+
+QPushButton:pressed {
+    background-color: #5fa8f0;
+    color: #ffffff;
+}
+
+QHeaderView::section {
+    background-color: #3a3a3a;
+    color: #e0e0e0;
+    border: none;
+    border-bottom: 1px solid #444444;
+    padding: 4px 6px;
+    font-weight: 500;
+}
+
+QTableView {
+    gridline-color: #444444;
+    selection-background-color: #5fa8f0;
+    selection-color: #ffffff;
+    border: 1px solid #3c3c3c;
+    border-radius: 6px;
+    alternate-background-color: #2f2f2f;
+}
+
+QTableView::item {
+    padding: 3px;
+}
+
+QTableView::item:alternate {
+    background-color: #2a2a2a;
+}
+
+QLabel {
+    color: #dddddd;
+}
+
+QSplitter::handle {
+    background-color: #444444;
+    border-radius: 3px;
+    margin: 1px;
+}
+
+QScrollBar:vertical, QScrollBar:horizontal {
+    background: #2b2b2b;
+    border: none;
+}
+
+QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
+    background: #555555;
+    border-radius: 4px;
+}
+
+QScrollBar::handle:hover {
+    background: #5fa8f0;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+    background: none;
+    border: none;
+}
+
+QScrollBar::add-page, QScrollBar::sub-page {
+    background: none;
+}
+
+QTableCornerButton::section {
+    background-color: #2b2b2b;
+    border: 1px solid #3c3c3c;
+}

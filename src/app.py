@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
     QTableWidgetItem,
     QHeaderView,
     QSplitter,
+    QPushButton
 )
 from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QVariant
 from PyQt6.QtWidgets import QSizePolicy, QComboBox
@@ -99,19 +100,24 @@ class FinanceApp(QWidget):
         # --- Maand filter ---
         top_controls = QHBoxLayout()
         top_controls.addWidget(QLabel("Filter op maand:"))
+
         self.month_combo = QComboBox()
-        months = self.summary_df.drop_duplicates("Maand")[
-            ["Maand", "Maand_NL"]
-        ].sort_values("Maand")
+        months = self.summary_df.drop_duplicates("Maand")[["Maand", "Maand_NL"]].sort_values("Maand")
         self.months_df = months
         self.month_combo.addItem("Alle maanden")
         for m in months["Maand_NL"]:
             self.month_combo.addItem(m)
         self.month_combo.currentTextChanged.connect(self.on_month_changed)
         top_controls.addWidget(self.month_combo)
+
+        # --- Thema button ---
+        self.theme_button = QPushButton("Dark mode" if settings.UI_THEME == "light" else "Light mode")
+        self.theme_button.clicked.connect(self.toggle_theme)
+        top_controls.addWidget(self.theme_button)
+
         top_controls.addStretch()
         main_layout.addLayout(top_controls)
-
+        
         self.top_tabs = QTabWidget()
 
         # Tegenpartij Netto
@@ -328,11 +334,21 @@ class FinanceApp(QWidget):
         layout.addWidget(msg)
         self.setLayout(layout)
 
+    def toggle_theme(self):
+        new_theme = "dark" if settings.UI_THEME == "light" else "light"
+        settings.set_theme(new_theme)
+
+        style_path = os.path.join("style", f"{new_theme}.qss")
+        if os.path.exists(style_path):
+            with open(style_path, "r") as f:
+                self.window().setStyleSheet(f.read())
+
+        self.theme_button.setText("Dark mode" if new_theme == "light" else "Light mode")
 
 def main():
     app = QApplication(sys.argv)
 
-    styleFile = os.path.join("style", "main.qss")
+    styleFile = os.path.join("style", f"{settings.UI_THEME}.qss")
     with open(styleFile, "r") as f:
         app.setStyleSheet(f.read())
 
