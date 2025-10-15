@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import (
     QTableWidgetItem,
     QHeaderView,
     QSplitter,
-    QPushButton
+    QPushButton,
 )
 from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QVariant
 from PyQt6.QtWidgets import QSizePolicy, QComboBox
@@ -102,7 +102,9 @@ class FinanceApp(QWidget):
         top_controls.addWidget(QLabel("Filter op maand:"))
 
         self.month_combo = QComboBox()
-        months = self.summary_df.drop_duplicates("Maand")[["Maand", "Maand_NL"]].sort_values("Maand")
+        months = self.summary_df.drop_duplicates("Maand")[
+            ["Maand", "Maand_NL"]
+        ].sort_values("Maand")
         self.months_df = months
         self.month_combo.addItem("Alle maanden")
         for m in months["Maand_NL"]:
@@ -111,13 +113,15 @@ class FinanceApp(QWidget):
         top_controls.addWidget(self.month_combo)
 
         # --- Thema button ---
-        self.theme_button = QPushButton("Dark mode" if settings.UI_THEME == "light" else "Light mode")
+        self.theme_button = QPushButton(
+            "Dark mode" if settings.UI_THEME == "light" else "Light mode"
+        )
         self.theme_button.clicked.connect(self.toggle_theme)
         top_controls.addWidget(self.theme_button)
 
         top_controls.addStretch()
         main_layout.addLayout(top_controls)
-        
+
         self.top_tabs = QTabWidget()
 
         # Tegenpartij Netto
@@ -344,6 +348,7 @@ class FinanceApp(QWidget):
                 self.window().setStyleSheet(f.read())
 
         self.theme_button.setText("Dark mode" if new_theme == "light" else "Light mode")
+
 
 def main():
     app = QApplication(sys.argv)

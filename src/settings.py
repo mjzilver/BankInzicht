@@ -8,12 +8,14 @@ DEFAULT_CONFIG = {
     "ui": {"theme": "light"},
 }
 
+
 def load_settings(filepath="settings.toml"):
     if not os.path.exists(filepath):
         save_settings(filepath, DEFAULT_CONFIG)
         return DEFAULT_CONFIG
     with open(filepath, "rb") as f:
         return tomllib.load(f)
+
 
 def reload_globals():
     global IGNORED_ACCOUNT_NAMES, DATA_DIR, LABEL_DB, UI_THEME
@@ -26,6 +28,7 @@ def reload_globals():
         raise ValueError("Missing 'label_db' in [data] section of settings.toml")
     UI_THEME = settings.get("ui", {}).get("theme", "light")
 
+
 def save_settings(filepath="settings.toml", data=None):
     global settings
     if data is None:
@@ -35,11 +38,13 @@ def save_settings(filepath="settings.toml", data=None):
     settings = load_settings(filepath)
     reload_globals()
 
+
 def set_theme(theme: str):
     if theme not in ("dark", "light"):
         raise ValueError("Theme must be 'dark' or 'light'")
     settings.setdefault("ui", {})["theme"] = theme
     save_settings()
+
 
 settings = load_settings()
 reload_globals()
