@@ -142,6 +142,15 @@ class FinanceApp(QWidget):
         )
         self.top_tabs.addTab(self.table_label, "Label Netto")
 
+        # Maand netto
+        self.table_maand = QTableView()
+        self.model_maand = DataFrameModel()
+        self.table_maand.setModel(self.model_maand)
+        self.table_maand.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        self.top_tabs.addTab(self.table_maand, "Maand Netto")
+
         self.main_tabs = QTabWidget()
 
         splitter.addWidget(self.top_tabs)
@@ -201,21 +210,63 @@ class FinanceApp(QWidget):
 
     def update_all_views(self):
         filtered_df, selected_month = self.get_filtered_by_selected_month()
-        self.update_tables(filtered_df)
+        self.update_tables(filtered_df, selected_month == "Alle maanden")
         self.update_tp_plot(filtered_df, selected_month)
         self.update_label_plot(filtered_df, selected_month)
         self.update_monthly_plot()
         self.populate_labels_editor()
 
-    def update_tables(self, df):
-        df1 = df[["Tegenpartij", "Netto", "Label", "Zakelijk_NL"]].copy()
-        self.model_tp.setDataFrame(df1)
-        grouped = (
+    def update_tables(self, df, isAlleSelected):
+        # Group by tegenpartij
+        tegenpartij_df = df[["Tegenpartij", "Netto", "Label", "Zakelijk_NL"]].copy()
+        tegenpartij_df = tegenpartij_df.rename(columns={"Zakelijk_NL": "Zakelijk"})
+
+        self.model_tp.setDataFrame(tegenpartij_df)
+
+        # Group by label
+        grouped_by_label = (
             df.groupby(["Label", "Zakelijk_NL"], as_index=False)["Netto"]
             .sum()
             .sort_values(by="Netto", ascending=False)
         )
-        self.model_label.setDataFrame(grouped)
+
+        grouped_by_label = grouped_by_label.rename(columns={"Zakelijk_NL": "Zakelijk"})
+
+        self.model_label.setDataFrame(grouped_by_label)
+
+        # Group by month
+        grouped_by_month = df.groupby(["Maand", "Maand_NL"], as_index=False)[
+            "Netto"
+        ].sum()
+
+        if isAlleSelected:
+            grouped_by_month["Jaar"] = grouped_by_month["Maand"].str[:4].astype(int)
+
+            year_totals = grouped_by_month.groupby("Jaar", as_index=False)[
+                "Netto"
+            ].sum()
+
+            year_totals["Maand_NL"] = "Totaal " + year_totals["Jaar"].astype(str)
+
+            combined = pd.concat([year_totals, grouped_by_month], ignore_index=True)
+
+            combined["_is_total"] = combined["Maand_NL"].str.startswith("Totaal")
+
+            combined = combined.sort_values(
+                by=["Jaar", "_is_total", "Maand"], ascending=[False, False, False]
+            ).drop(columns="_is_total")
+
+            display_df = combined[["Maand_NL", "Netto"]].rename(
+                columns={"Maand_NL": "Maand"}
+            )
+
+            self.model_maand.setDataFrame(display_df)
+        else:
+            self.model_maand.setDataFrame(
+                grouped_by_month.sort_values(by="Maand", ascending=False)
+                .drop(columns="Maand")
+                .rename(columns={"Maand_NL": "Maand"})
+            )
 
     def update_tp_plot(self, df, selected_month):
         if selected_month == "Alle maanden":

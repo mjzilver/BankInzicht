@@ -8,6 +8,8 @@ PY := $(VENV_DIR)/bin/python
 
 .PHONY: install run format clean
 
+all: run
+
 $(VENV_DIR):
 	$(PYTHON) -m venv $(VENV_DIR)
 	$(PIP) install -U pip
