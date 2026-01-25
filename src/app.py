@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QVariant
 from PyQt6.QtWidgets import QSizePolicy, QComboBox
+from PyQt6 import QtGui
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
@@ -76,6 +77,7 @@ class FinanceApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Financieel Overzicht")
+        self.setWindowIcon(QtGui.QIcon('app_icon.ico'))
         self.resize(1200, 800)
 
         init_db()
