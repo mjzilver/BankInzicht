@@ -73,6 +73,22 @@ class DataFrameModel(QAbstractTableModel):
         return QVariant()
 
 
+    def sort(self, column, order):
+        colname = self._df.columns[column]
+
+        self.layoutAboutToBeChanged.emit()
+
+        self._df.sort_values(
+            by=colname,
+            ascending=(order == Qt.SortOrder.AscendingOrder),
+            inplace=True,
+            kind="mergesort"
+        )
+        self._df.reset_index(drop=True, inplace=True)
+
+        self.layoutChanged.emit()
+
+
 class FinanceApp(QWidget):
     def __init__(self):
         super().__init__()
@@ -128,6 +144,7 @@ class FinanceApp(QWidget):
 
         # Tegenpartij Netto
         self.table_tp = QTableView()
+        self.table_tp.setSortingEnabled(True)
         self.model_tp = DataFrameModel()
         self.table_tp.setModel(self.model_tp)
         self.table_tp.horizontalHeader().setSectionResizeMode(
@@ -137,6 +154,7 @@ class FinanceApp(QWidget):
 
         # Labels Netto
         self.table_label = QTableView()
+        self.table_label.setSortingEnabled(True)
         self.model_label = DataFrameModel()
         self.table_label.setModel(self.model_label)
         self.table_label.horizontalHeader().setSectionResizeMode(
@@ -146,6 +164,7 @@ class FinanceApp(QWidget):
 
         # Maand netto
         self.table_maand = QTableView()
+        self.table_maand.setSortingEnabled(True)
         self.model_maand = DataFrameModel()
         self.table_maand.setModel(self.model_maand)
         self.table_maand.horizontalHeader().setSectionResizeMode(
@@ -192,6 +211,7 @@ class FinanceApp(QWidget):
         self.tab_labels_editor = QWidget()
         ed_layout = QVBoxLayout(self.tab_labels_editor)
         self.labels_table = QTableWidget()
+        self.labels_table.setSortingEnabled(True)
         self.labels_table.itemChanged.connect(self.label_item_changed)
         ed_layout.addWidget(self.labels_table)
         self.main_tabs.addTab(self.tab_labels_editor, "Tegenpartij Labels")
@@ -222,6 +242,13 @@ class FinanceApp(QWidget):
         # Group by tegenpartij
         tegenpartij_df = df[["Tegenpartij", "Netto", "Label", "Zakelijk_NL"]].copy()
         tegenpartij_df = tegenpartij_df.rename(columns={"Zakelijk_NL": "Zakelijk"})
+        tegenpartij_df = (
+            tegenpartij_df.groupby(
+                ["Tegenpartij", "Label", "Zakelijk"], as_index=False
+            )["Netto"]
+            .sum()
+            .sort_values(by="Netto", ascending=False)
+        )
 
         self.model_tp.setDataFrame(tegenpartij_df)
 

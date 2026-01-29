@@ -17,7 +17,7 @@ $(VENV_DIR):
 install: $(VENV_DIR)
 	$(PIP) install -r $(REQS)
 
-run: $(VENV_DIR)
+run: $(VENV_DIR) install
 	$(PY) $(ENTRY)
 
 format: $(VENV_DIR)
