@@ -33,6 +33,7 @@ from visualization import (
     plot_counterparty_netto,
     plot_label_netto,
     plot_monthly_overview,
+    plot_time_line,
 )
 from utils import format_month
 from label_db import get_labels, save_label, init_db
@@ -72,7 +73,6 @@ class DataFrameModel(QAbstractTableModel):
                 return str(section)
         return QVariant()
 
-
     def sort(self, column, order):
         colname = self._df.columns[column]
 
@@ -82,7 +82,7 @@ class DataFrameModel(QAbstractTableModel):
             by=colname,
             ascending=(order == Qt.SortOrder.AscendingOrder),
             inplace=True,
-            kind="mergesort"
+            kind="mergesort",
         )
         self._df.reset_index(drop=True, inplace=True)
 
@@ -93,7 +93,7 @@ class FinanceApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Financieel Overzicht")
-        self.setWindowIcon(QtGui.QIcon('app_icon.ico'))
+        self.setWindowIcon(QtGui.QIcon("app_icon.ico"))
         self.resize(1200, 800)
 
         init_db()
@@ -151,6 +151,10 @@ class FinanceApp(QWidget):
             QHeaderView.ResizeMode.Stretch
         )
         self.top_tabs.addTab(self.table_tp, "Tegenpartij Netto")
+        self.table_tp.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.table_tp.customContextMenuRequested.connect(
+            self.tegenpartij_detail_context_menu
+        )
 
         # Labels Netto
         self.table_label = QTableView()
@@ -161,6 +165,10 @@ class FinanceApp(QWidget):
             QHeaderView.ResizeMode.Stretch
         )
         self.top_tabs.addTab(self.table_label, "Label Netto")
+        self.table_label.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.table_label.customContextMenuRequested.connect(
+            self.label_detail_context_menu
+        )
 
         # Maand netto
         self.table_maand = QTableView()
@@ -194,7 +202,7 @@ class FinanceApp(QWidget):
         label_layout.addWidget(self.info_label)
         self.main_tabs.addTab(self.tab_label, "Per Label")
 
-        # Maandelijkse Samenvatting
+        # Maandoverzicht
         self.tab_monthly = QWidget()
         monthly_layout = QVBoxLayout(self.tab_monthly)
         filter_layout = QHBoxLayout()
@@ -205,7 +213,7 @@ class FinanceApp(QWidget):
         filter_layout.addWidget(self.zakelijkheid_combo)
         filter_layout.addStretch()
         monthly_layout.addLayout(filter_layout)
-        self.main_tabs.addTab(self.tab_monthly, "Maandelijkse Samenvatting")
+        self.main_tabs.addTab(self.tab_monthly, "Maandoverzicht")
 
         # Tegenpartij Labels
         self.tab_labels_editor = QWidget()
@@ -215,6 +223,16 @@ class FinanceApp(QWidget):
         self.labels_table.itemChanged.connect(self.label_item_changed)
         ed_layout.addWidget(self.labels_table)
         self.main_tabs.addTab(self.tab_labels_editor, "Tegenpartij Labels")
+
+        # Tijdlijn
+        self.tab_time_line = QWidget()
+        time_line_layout = QVBoxLayout(self.tab_time_line)
+        self.time_line = QLabel(
+            "Klik op een label of tegenpartij in bovenste tabellen om de maandelijkse Tijdlijn te zien."
+        )
+        self.time_line.setWordWrap(True)
+        time_line_layout.addWidget(self.time_line)
+        self.main_tabs.addTab(self.tab_time_line, "Tijdlijn")
 
         self.update_all_views()
 
@@ -345,6 +363,30 @@ class FinanceApp(QWidget):
             layout.setStretchFactor(canvas, 1)
         if info_label:
             info_label.setText(info_text or "")
+
+    def detail_context_menu(self, position, index_name, table_view, model):
+        index = table_view.indexAt(position)
+        if not index.isValid():
+            return
+
+        value = model._df.iloc[index.row()][index_name]
+        filtered_df = self.summary_df[self.summary_df[index_name] == value].copy()
+        monthly = summarize_monthly_totals_by_label(filtered_df)
+        fig = plot_time_line(
+            monthly, title=f"Tijdlijn voor: {value}"
+        )
+        self.set_canvas(self.tab_time_line, fig)
+
+        self.main_tabs.setCurrentWidget(self.tab_time_line)
+
+        self.time_line.setText("")
+        self.time_line.hide()
+
+    def label_detail_context_menu(self, position):
+        self.detail_context_menu(position, "Label", self.table_label, self.model_label)
+
+    def tegenpartij_detail_context_menu(self, position):
+        self.detail_context_menu(position, "Tegenpartij", self.table_tp, self.model_tp)
 
     # --- Label Editor ---
     def populate_labels_editor(self):

@@ -48,7 +48,7 @@ def plot_horizontal_bar(df, value_col, category_col, title="", highlight=None):
     for spine in ax.spines.values():
         spine.set_visible(False)
     ax.set_title(title)
-    plt.tight_layout()
+    fig.tight_layout()
     return fig
 
 
@@ -86,13 +86,64 @@ def plot_label_netto(filtered_df, highlight=None):
     )
 
 
-def plot_monthly_overview(monthly):
+def plot_time_line(df, title):
+    fig, ax = plt.subplots()
+    if (df["inkomsten"] != 0).any():
+        line = ax.plot(
+            df["Maand_NL"],
+            df["inkomsten"],
+            label="Inkomsten",
+            color="green",
+            marker="o",
+        )
+        for i, (x, y) in enumerate(zip(df["Maand_NL"], df["inkomsten"])):
+            ax.annotate(
+                f"{y:,.2f}€",
+                xy=(x, y),
+                xytext=(0, 5),
+                textcoords="offset points",
+                ha="center",
+                fontsize=8,
+                color="black",
+            )
+
+    if (df["uitgaven"] != 0).any():
+        line = ax.plot(
+            df["Maand_NL"],
+            df["uitgaven"],
+            label="Uitgaven",
+            color="red",
+            marker="o",
+        )
+        for i, (x, y) in enumerate(zip(df["Maand_NL"], df["uitgaven"])):
+            ax.annotate(
+                f"{y:,.2f}€",
+                xy=(x, y),
+                xytext=(0, -15),
+                textcoords="offset points",
+                ha="center",
+                fontsize=8,
+                color="black",
+            )
+
+    ax.set_title(title)
+    ax.set_xlabel("Maand")
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
+    ax.set_ylabel("Bedrag (€)")
+    ax.legend()
+    ax.grid(True)
+    fig.set_size_inches(10, 5)
+    fig.tight_layout()
+    return fig
+
+
+def plot_monthly_overview(df):
     fig, ax = plt.subplots(figsize=(12, 5))
 
-    monthly["Label"] = monthly["Label"].replace("", "geen label")
+    df["Label"] = df["Label"].replace("", "geen label")
 
-    months = monthly["Maand_NL"].unique()
-    labels = monthly["Label"].unique()
+    months = df["Maand_NL"].unique()
+    labels = df["Label"].unique()
 
     x = np.arange(len(months))
     width = 0.8
@@ -104,7 +155,7 @@ def plot_monthly_overview(monthly):
     expense_bottom = np.zeros(len(months))
 
     for label in labels:
-        subset = monthly[monthly["Label"] == label]
+        subset = df[df["Label"] == label]
         subset = subset.set_index("Maand_NL").reindex(months, fill_value=0)
 
         inkomsten = subset["inkomsten"].values
@@ -159,5 +210,5 @@ def plot_monthly_overview(monthly):
     ax.legend(title="Labelkleur en soort", bbox_to_anchor=(1.05, 1), loc="upper left")
     ax.set_title("Maandelijkse Inkomsten -- Gestreept is negatief")
     ax.margins(y=0.1)
-    plt.tight_layout()
+    fig.tight_layout()
     return fig
