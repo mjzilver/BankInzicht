@@ -372,8 +372,9 @@ class FinanceApp(QWidget):
         value = model._df.iloc[index.row()][index_name]
         filtered_df = self.summary_df[self.summary_df[index_name] == value].copy()
         monthly = summarize_monthly_totals_by_label(filtered_df)
+        avg = filtered_df["Netto"].mean()
         fig = plot_time_line(
-            monthly, title=f"Tijdlijn voor: {value}"
+            monthly, title=f"Tijdlijn voor: {value} - Gemiddeld: {avg:.2f} per maand"
         )
         self.set_canvas(self.tab_time_line, fig)
 
