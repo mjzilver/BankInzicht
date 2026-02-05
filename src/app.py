@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (
     QSplitter,
     QPushButton,
 )
-from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex, QVariant
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QSizePolicy, QComboBox
 from PyQt6 import QtGui
 
@@ -28,7 +28,16 @@ from analysis import (
     summarize_by_counterparty_per_month,
     summarize_monthly_totals_by_label,
 )
+from dataframe import DataFrameModel
 import settings
+from tabs.label_chart import LabelChartTab
+from tabs.label_editor import LabelsEditorTab
+from tabs.label_netto import LabelNettoTab
+from tabs.maand_netto import MaandNettoTab
+from tabs.maand_overzicht import MaandoverzichtTab
+from tabs.tegenpartij_chart import TegenpartijChartTab
+from tabs.tegenpartij_netto import TegenpartijNettoTab
+from tabs.tijdlijn_chart import TijdlijnChartTab
 from visualization import (
     plot_counterparty_netto,
     plot_label_netto,
@@ -37,56 +46,6 @@ from visualization import (
 )
 from utils import format_month
 from label_db import get_labels, save_label, init_db
-
-
-class DataFrameModel(QAbstractTableModel):
-    def __init__(self, df=pd.DataFrame(), parent=None):
-        super().__init__(parent)
-        self._df = df.reset_index(drop=True)
-
-    def setDataFrame(self, df):
-        self.beginResetModel()
-        self._df = df.reset_index(drop=True)
-        self.endResetModel()
-
-    def rowCount(self, parent=QModelIndex()):
-        return len(self._df)
-
-    def columnCount(self, parent=QModelIndex()):
-        return 0 if self._df.empty else len(self._df.columns)
-
-    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
-        if not index.isValid():
-            return QVariant()
-        if role == Qt.ItemDataRole.DisplayRole:
-            val = self._df.iloc[index.row(), index.column()]
-            if isinstance(val, float):
-                return f"{val:,.2f}"
-            return str(val)
-        return QVariant()
-
-    def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
-        if role == Qt.ItemDataRole.DisplayRole:
-            if orientation == Qt.Orientation.Horizontal:
-                return str(self._df.columns[section])
-            else:
-                return str(section)
-        return QVariant()
-
-    def sort(self, column, order):
-        colname = self._df.columns[column]
-
-        self.layoutAboutToBeChanged.emit()
-
-        self._df.sort_values(
-            by=colname,
-            ascending=(order == Qt.SortOrder.AscendingOrder),
-            inplace=True,
-            kind="mergesort",
-        )
-        self._df.reset_index(drop=True, inplace=True)
-
-        self.layoutChanged.emit()
 
 
 class FinanceApp(QWidget):
@@ -143,42 +102,16 @@ class FinanceApp(QWidget):
         self.top_tabs = QTabWidget()
 
         # Tegenpartij Netto
-        self.table_tp = QTableView()
-        self.table_tp.setSortingEnabled(True)
-        self.model_tp = DataFrameModel()
-        self.table_tp.setModel(self.model_tp)
-        self.table_tp.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-        self.top_tabs.addTab(self.table_tp, "Tegenpartij Netto")
-        self.table_tp.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.table_tp.customContextMenuRequested.connect(
-            self.tegenpartij_detail_context_menu
-        )
+        self.tegenpartij_netto_tab = TegenpartijNettoTab(app=self)
+        self.top_tabs.addTab(self.tegenpartij_netto_tab, "Tegenpartij Netto")
 
         # Labels Netto
-        self.table_label = QTableView()
-        self.table_label.setSortingEnabled(True)
-        self.model_label = DataFrameModel()
-        self.table_label.setModel(self.model_label)
-        self.table_label.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-        self.top_tabs.addTab(self.table_label, "Label Netto")
-        self.table_label.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.table_label.customContextMenuRequested.connect(
-            self.label_detail_context_menu
-        )
+        self.label_netto_tab = LabelNettoTab(app=self)
+        self.top_tabs.addTab(self.label_netto_tab, "Label Netto")
 
         # Maand netto
-        self.table_maand = QTableView()
-        self.table_maand.setSortingEnabled(True)
-        self.model_maand = DataFrameModel()
-        self.table_maand.setModel(self.model_maand)
-        self.table_maand.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-        self.top_tabs.addTab(self.table_maand, "Maand Netto")
+        self.maand_netto_tab = MaandNettoTab(app=self)
+        self.top_tabs.addTab(self.maand_netto_tab, "Maand Netto")
 
         self.main_tabs = QTabWidget()
 
@@ -187,52 +120,24 @@ class FinanceApp(QWidget):
         main_layout.addWidget(splitter)
 
         # Per Tegenpartij
-        self.tab_tp = QWidget()
-        tp_layout = QVBoxLayout(self.tab_tp)
-        self.info_tp = QLabel()
-        self.info_tp.setWordWrap(True)
-        tp_layout.addWidget(self.info_tp)
-        self.main_tabs.addTab(self.tab_tp, "Per Tegenpartij")
+        self.tp_tab = TegenpartijChartTab(app=self)
+        self.main_tabs.addTab(self.tp_tab, "Per Tegenpartij")
 
         # Per Label
-        self.tab_label = QWidget()
-        label_layout = QVBoxLayout(self.tab_label)
-        self.info_label = QLabel()
-        self.info_label.setWordWrap(True)
-        label_layout.addWidget(self.info_label)
-        self.main_tabs.addTab(self.tab_label, "Per Label")
+        self.label_tab = LabelChartTab(app=self)
+        self.main_tabs.addTab(self.label_tab, "Per Label")
 
         # Maandoverzicht
-        self.tab_monthly = QWidget()
-        monthly_layout = QVBoxLayout(self.tab_monthly)
-        filter_layout = QHBoxLayout()
-        filter_layout.addWidget(QLabel("Filter op zakelijkheid:"))
-        self.zakelijkheid_combo = QComboBox()
-        self.zakelijkheid_combo.addItems(["Alle", "Zakelijk", "Niet-zakelijk"])
-        self.zakelijkheid_combo.currentTextChanged.connect(self.update_monthly_plot)
-        filter_layout.addWidget(self.zakelijkheid_combo)
-        filter_layout.addStretch()
-        monthly_layout.addLayout(filter_layout)
-        self.main_tabs.addTab(self.tab_monthly, "Maandoverzicht")
+        self.monthly_tab = MaandoverzichtTab(app=self)
+        self.main_tabs.addTab(self.monthly_tab, "Maandoverzicht")
 
         # Tegenpartij Labels
-        self.tab_labels_editor = QWidget()
-        ed_layout = QVBoxLayout(self.tab_labels_editor)
-        self.labels_table = QTableWidget()
-        self.labels_table.setSortingEnabled(True)
-        self.labels_table.itemChanged.connect(self.label_item_changed)
-        ed_layout.addWidget(self.labels_table)
-        self.main_tabs.addTab(self.tab_labels_editor, "Tegenpartij Labels")
+        self.labels_editor_tab = LabelsEditorTab(app=self)
+        self.main_tabs.addTab(self.labels_editor_tab, "Tegenpartij Labels")
 
         # Tijdlijn
-        self.tab_time_line = QWidget()
-        time_line_layout = QVBoxLayout(self.tab_time_line)
-        self.time_line = QLabel(
-            "Klik op een label of tegenpartij in bovenste tabellen om de maandelijkse Tijdlijn te zien."
-        )
-        self.time_line.setWordWrap(True)
-        time_line_layout.addWidget(self.time_line)
-        self.main_tabs.addTab(self.tab_time_line, "Tijdlijn")
+        self.tijdlijn_tab = TijdlijnChartTab(app=self)
+        self.main_tabs.addTab(self.tijdlijn_tab, "Tijdlijn")
 
         self.update_all_views()
 
@@ -268,7 +173,8 @@ class FinanceApp(QWidget):
             .sort_values(by="Netto", ascending=False)
         )
 
-        self.model_tp.setDataFrame(tegenpartij_df)
+        self.tegenpartij_netto_tab.setDataFrame(tegenpartij_df)
+        self.tp_tab.setDataFrame(tegenpartij_df)
 
         # Group by label
         grouped_by_label = (
@@ -279,7 +185,7 @@ class FinanceApp(QWidget):
 
         grouped_by_label = grouped_by_label.rename(columns={"Zakelijk_NL": "Zakelijk"})
 
-        self.model_label.setDataFrame(grouped_by_label)
+        self.label_netto_tab.setDataFrame(grouped_by_label)
 
         # Group by month
         grouped_by_month = df.groupby(["Maand", "Maand_NL"], as_index=False)[
@@ -307,44 +213,22 @@ class FinanceApp(QWidget):
                 columns={"Maand_NL": "Maand"}
             )
 
-            self.model_maand.setDataFrame(display_df)
+            self.maand_netto_tab.setDataFrame(display_df)
         else:
-            self.model_maand.setDataFrame(
+            self.maand_netto_tab.setDataFrame(
                 grouped_by_month.sort_values(by="Maand", ascending=False)
                 .drop(columns="Maand")
                 .rename(columns={"Maand_NL": "Maand"})
             )
 
     def update_tp_plot(self, df, selected_month):
-        if selected_month == "Alle maanden":
-            self.set_canvas(
-                self.tab_tp,
-                None,
-                self.info_tp,
-                "Selecteer een specifieke maand om de grafiek te zien.",
-            )
-            return
-        fig = plot_counterparty_netto(df)
-        self.set_canvas(self.tab_tp, fig, self.info_tp)
+        self.tp_tab.update_plot(df, selected_month)
 
     def update_label_plot(self, df, selected_month):
-        if selected_month == "Alle maanden":
-            self.set_canvas(
-                self.tab_label,
-                None,
-                self.info_label,
-                "Selecteer een specifieke maand om de grafiek te zien.",
-            )
-            return
-        fig = plot_label_netto(df)
-        self.set_canvas(self.tab_label, fig, self.info_label)
+        self.label_tab.update_plot(df, selected_month)
 
     def update_monthly_plot(self):
-        zakelijkheid = self.zakelijkheid_combo.currentText()
-        filtered_label_df = filter_zakelijkheid(self.summary_df, zakelijkheid)
-        monthly = summarize_monthly_totals_by_label(filtered_label_df)
-        fig = plot_monthly_overview(monthly)
-        self.set_canvas(self.tab_monthly, fig)
+        self.monthly_tab.update_plot()
 
     def set_canvas(self, tab_widget, fig, info_label=None, info_text=None):
         layout = tab_widget.layout()
@@ -376,80 +260,15 @@ class FinanceApp(QWidget):
         fig = plot_time_line(
             monthly, title=f"Tijdlijn voor: {value} - Gemiddeld: {avg:.2f} per maand"
         )
-        self.set_canvas(self.tab_time_line, fig)
+        self.set_canvas(self.tijdlijn_tab, fig)
 
-        self.main_tabs.setCurrentWidget(self.tab_time_line)
+        self.main_tabs.setCurrentWidget(self.tijdlijn_tab)
 
-        self.time_line.setText("")
-        self.time_line.hide()
+        self.tijdlijn_tab.info_label.setText("")
+        self.tijdlijn_tab.info_label.hide()
 
-    def label_detail_context_menu(self, position):
-        self.detail_context_menu(position, "Label", self.table_label, self.model_label)
-
-    def tegenpartij_detail_context_menu(self, position):
-        self.detail_context_menu(position, "Tegenpartij", self.table_tp, self.model_tp)
-
-    # --- Label Editor ---
     def populate_labels_editor(self):
-        parties = sorted(self.summary_df["Tegenpartij"].str.strip().unique())
-        labels_df = get_labels()
-
-        self.labels_table.blockSignals(True)
-        self.labels_table.clear()
-        self.labels_table.setColumnCount(3)
-        self.labels_table.setRowCount(len(parties))
-        self.labels_table.setHorizontalHeaderLabels(
-            ["Tegenpartij", "Label", "Zakelijk"]
-        )
-        self.labels_table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-
-        for i, tp in enumerate(parties):
-            item_tp = QTableWidgetItem(tp)
-            item_tp.setFlags(item_tp.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            self.labels_table.setItem(i, 0, item_tp)
-
-            existing = labels_df[labels_df["Tegenpartij"] == tp]
-            label_val = existing["Label"].values[0] if not existing.empty else ""
-            zakelijk_val = (
-                existing["Zakelijk"].values[0] if not existing.empty else False
-            )
-
-            item_label = QTableWidgetItem(label_val)
-            self.labels_table.setItem(i, 1, item_label)
-
-            combo = QComboBox()
-            combo.addItems(["Zakelijk", "Niet-zakelijk"])
-            combo.setCurrentIndex(0 if zakelijk_val else 1)
-            combo.currentIndexChanged.connect(
-                lambda _, row=i: self.save_label_from_row(row)
-            )
-            self.labels_table.setCellWidget(i, 2, combo)
-
-        self.labels_table.blockSignals(False)
-
-    def label_item_changed(self, item):
-        if item.column() == 1:
-            row = item.row()
-            self.save_label_from_row(row)
-
-    def save_label_from_row(self, row):
-        tp = self.labels_table.item(row, 0).text()
-        label_item = self.labels_table.item(row, 1)
-        label = label_item.text() if label_item else ""
-        combo = self.labels_table.cellWidget(row, 2)
-        zakelijk = combo.currentText() == "Zakelijk" if combo else False
-
-        save_label(tp, label, zakelijk)
-
-        mask = self.summary_df["Tegenpartij"] == tp
-        self.summary_df.loc[mask, "Label"] = label or "geen label"
-        self.summary_df.loc[mask, "Zakelijk_NL"] = (
-            "Zakelijk" if zakelijk else "Niet-zakelijk"
-        )
-
-        self.update_all_views()
+        self.labels_editor_tab.populate()
 
     def show_empty(self):
         layout = QVBoxLayout(self)
