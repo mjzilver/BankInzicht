@@ -31,6 +31,18 @@ class TegenpartijChartTab(QWidget):
     def setDataFrame(self, df):
         self.model.setDataFrame(df)
 
+    def update(self, df):
+        tegenpartij_df = df[["Tegenpartij", "Netto", "Label", "Zakelijk_NL"]].copy()
+        tegenpartij_df = tegenpartij_df.rename(columns={"Zakelijk_NL": "Zakelijk"})
+        tegenpartij_df = (
+            tegenpartij_df.groupby(
+                ["Tegenpartij", "Label", "Zakelijk"], as_index=False
+            )["Netto"]
+            .sum()
+            .sort_values(by="Netto", ascending=False)
+        )
+        self.setDataFrame(tegenpartij_df)
+
     def update_plot(self, df, selected_month):
         if selected_month == "Alle maanden":
             self.app.set_canvas(

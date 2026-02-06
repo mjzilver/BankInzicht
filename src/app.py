@@ -9,10 +9,6 @@ from PyQt6.QtWidgets import (
     QLabel,
     QComboBox,
     QTabWidget,
-    QTableView,
-    QTableWidget,
-    QTableWidgetItem,
-    QHeaderView,
     QSplitter,
     QPushButton,
 )
@@ -24,11 +20,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 from data_loader import load_csvs, clean_transactions, merge_and_clean_labels
 from analysis import (
-    filter_zakelijkheid,
     summarize_by_counterparty_per_month,
     summarize_monthly_totals_by_label,
 )
-from dataframe import DataFrameModel
 import settings
 from tabs.label_chart import LabelChartTab
 from tabs.label_editor import LabelsEditorTab
@@ -39,13 +33,10 @@ from tabs.tegenpartij_chart import TegenpartijChartTab
 from tabs.tegenpartij_netto import TegenpartijNettoTab
 from tabs.tijdlijn_chart import TijdlijnChartTab
 from visualization import (
-    plot_counterparty_netto,
-    plot_label_netto,
-    plot_monthly_overview,
     plot_time_line,
 )
 from utils import format_month
-from label_db import get_labels, save_label, init_db
+from label_db import get_labels, init_db
 
 
 class FinanceApp(QWidget):
@@ -155,71 +146,19 @@ class FinanceApp(QWidget):
 
     def update_all_views(self):
         filtered_df, selected_month = self.get_filtered_by_selected_month()
-        self.update_tables(filtered_df, selected_month == "Alle maanden")
+        isAlleSelected = selected_month == "Alle maanden"
+
+        # Update tables
+        self.tegenpartij_netto_tab.update(filtered_df)
+        self.tp_tab.update(filtered_df)
+        self.label_netto_tab.update(filtered_df)
+        self.maand_netto_tab.update(filtered_df, isAlleSelected)
+
+        # Update plots
         self.update_tp_plot(filtered_df, selected_month)
         self.update_label_plot(filtered_df, selected_month)
         self.update_monthly_plot()
         self.populate_labels_editor()
-
-    def update_tables(self, df, isAlleSelected):
-        # Group by tegenpartij
-        tegenpartij_df = df[["Tegenpartij", "Netto", "Label", "Zakelijk_NL"]].copy()
-        tegenpartij_df = tegenpartij_df.rename(columns={"Zakelijk_NL": "Zakelijk"})
-        tegenpartij_df = (
-            tegenpartij_df.groupby(
-                ["Tegenpartij", "Label", "Zakelijk"], as_index=False
-            )["Netto"]
-            .sum()
-            .sort_values(by="Netto", ascending=False)
-        )
-
-        self.tegenpartij_netto_tab.setDataFrame(tegenpartij_df)
-        self.tp_tab.setDataFrame(tegenpartij_df)
-
-        # Group by label
-        grouped_by_label = (
-            df.groupby(["Label", "Zakelijk_NL"], as_index=False)["Netto"]
-            .sum()
-            .sort_values(by="Netto", ascending=False)
-        )
-
-        grouped_by_label = grouped_by_label.rename(columns={"Zakelijk_NL": "Zakelijk"})
-
-        self.label_netto_tab.setDataFrame(grouped_by_label)
-
-        # Group by month
-        grouped_by_month = df.groupby(["Maand", "Maand_NL"], as_index=False)[
-            "Netto"
-        ].sum()
-
-        if isAlleSelected:
-            grouped_by_month["Jaar"] = grouped_by_month["Maand"].str[:4].astype(int)
-
-            year_totals = grouped_by_month.groupby("Jaar", as_index=False)[
-                "Netto"
-            ].sum()
-
-            year_totals["Maand_NL"] = "Totaal " + year_totals["Jaar"].astype(str)
-
-            combined = pd.concat([year_totals, grouped_by_month], ignore_index=True)
-
-            combined["_is_total"] = combined["Maand_NL"].str.startswith("Totaal")
-
-            combined = combined.sort_values(
-                by=["Jaar", "_is_total", "Maand"], ascending=[False, False, False]
-            ).drop(columns="_is_total")
-
-            display_df = combined[["Maand_NL", "Netto"]].rename(
-                columns={"Maand_NL": "Maand"}
-            )
-
-            self.maand_netto_tab.setDataFrame(display_df)
-        else:
-            self.maand_netto_tab.setDataFrame(
-                grouped_by_month.sort_values(by="Maand", ascending=False)
-                .drop(columns="Maand")
-                .rename(columns={"Maand_NL": "Maand"})
-            )
 
     def update_tp_plot(self, df, selected_month):
         self.tp_tab.update_plot(df, selected_month)
