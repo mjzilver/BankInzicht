@@ -29,11 +29,10 @@ class LabelNettoTab(QWidget):
 
     def update(self, df):
         grouped_by_label = (
-            df.groupby(["Label", "Zakelijk_NL"], as_index=False)["Netto"]
+            df.groupby(["Label"], as_index=False)["Netto"]
             .sum()
             .sort_values(by="Netto", ascending=False)
         )
-        grouped_by_label = grouped_by_label.rename(columns={"Zakelijk_NL": "Zakelijk"})
         self.setDataFrame(grouped_by_label)
 
     def label_detail_context_menu(self, position):

@@ -1,3 +1,4 @@
+import io
 import os
 import sys
 import pandas as pd
@@ -11,10 +12,12 @@ from PyQt6.QtWidgets import (
     QTabWidget,
     QSplitter,
     QPushButton,
+    QMenu,
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QBuffer, QIODevice
 from PyQt6.QtWidgets import QSizePolicy, QComboBox
 from PyQt6 import QtGui
+from PyQt6.QtGui import QPixmap
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
@@ -187,10 +190,37 @@ class FinanceApp(QWidget):
                 QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
             )
             canvas.setSizePolicy(policy)
+            canvas.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+            canvas.customContextMenuRequested.connect(
+                lambda pos: self.show_canvas_context_menu(canvas, pos)
+            )
             layout.addWidget(canvas)
             layout.setStretchFactor(canvas, 1)
         if info_label:
             info_label.setText(info_text or "")
+
+    def show_canvas_context_menu(self, canvas, position):
+        menu = QMenu()
+        action_copy = menu.addAction("Copy to clipboard")
+        
+        action = menu.exec(canvas.mapToGlobal(position))
+        
+        if action == action_copy:
+            self.copy_canvas_to_clipboard(canvas)
+
+    def copy_canvas_to_clipboard(self, canvas):
+        fig = canvas.figure
+        
+        buf = io.BytesIO()
+        fig.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+        buf.seek(0)
+        
+        pixmap = QPixmap()
+        pixmap.loadFromData(buf.read())
+        
+        QApplication.clipboard().setPixmap(pixmap)
+        
+        buf.close()
 
     def detail_context_menu(self, position, index_name, table_view, model):
         index = table_view.indexAt(position)

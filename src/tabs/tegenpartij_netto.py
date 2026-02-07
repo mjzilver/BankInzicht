@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QTableView
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QTableView, QMenu
 from PyQt6.QtCore import Qt
 
 from dataframe import DataFrameModel
@@ -41,6 +41,16 @@ class TegenpartijNettoTab(QWidget):
         return tegenpartij_df
 
     def tegenpartij_detail_context_menu(self, position):
-        self.app.detail_context_menu(
-            position, "Tegenpartij", self.table_view, self.model
-        )
+        index = self.table_view.indexAt(position)
+        if not index.isValid():
+            return
+        
+        menu = QMenu()
+        action_tijdlijn = menu.addAction("Tijdlijn voor tegenpartij")
+        
+        action = menu.exec(self.table_view.viewport().mapToGlobal(position))
+        
+        if action == action_tijdlijn:
+            self.app.detail_context_menu(
+                position, "Tegenpartij", self.table_view, self.model
+            )
