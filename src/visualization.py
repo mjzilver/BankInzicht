@@ -148,7 +148,7 @@ def plot_monthly_overview(df):
     x = np.arange(len(months))
     width = 0.8
 
-    cmap = cm.get_cmap("tab20", len(labels))
+    cmap = cm.get_cmap("tab20b", len(labels) + 1)
     label_colors = {label: to_hex(cmap(i)) for i, label in enumerate(labels)}
 
     income_bottom = np.zeros(len(months))
