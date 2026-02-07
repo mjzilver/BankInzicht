@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QTableView
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QTableView, QMenu
 from PyQt6.QtCore import Qt
 
 from dataframe import DataFrameModel
@@ -37,4 +37,19 @@ class LabelNettoTab(QWidget):
         self.setDataFrame(grouped_by_label)
 
     def label_detail_context_menu(self, position):
-        self.app.detail_context_menu(position, "Label", self.table_view, self.model)
+        index = self.table_view.indexAt(position)
+        if not index.isValid():
+            return
+
+        label_value = self.model._df.iloc[index.row()]["Label"]
+        
+        menu = QMenu()
+        action_tijdlijn = menu.addAction("Tijdlijn voor label")
+        action_tegenpartijen = menu.addAction("Tegenpartijen per label")
+        
+        action = menu.exec(self.table_view.viewport().mapToGlobal(position))
+        
+        if action == action_tijdlijn:
+            self.app.show_tijdlijn_for_label(label_value)
+        elif action == action_tegenpartijen:
+            self.app.show_tegenpartijen_for_label(label_value)

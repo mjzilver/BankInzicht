@@ -133,3 +133,25 @@ QTableCornerButton::section {
     background-color: #2b2b2b;
     border: 1px solid #3c3c3c;
 }
+
+QMenu {
+    background-color: #2f2f2f;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+QMenu::item {
+    background-color: transparent;
+    padding: 6px 20px;
+    border-radius: 3px;
+}
+
+QMenu::item:selected {
+    background-color: #5fa8f0;
+    color: #ffffff;
+}
+
+QMenu::item:hover {
+    background-color: #4a4a4a;
+}

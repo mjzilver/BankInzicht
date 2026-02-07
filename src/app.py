@@ -27,6 +27,7 @@ import settings
 from tabs.label_chart import LabelChartTab
 from tabs.label_editor import LabelsEditorTab
 from tabs.label_netto import LabelNettoTab
+from tabs.label_tegenpartij import LabelTegenpartijTab
 from tabs.maand_netto import MaandNettoTab
 from tabs.maand_overzicht import MaandoverzichtTab
 from tabs.tegenpartij_chart import TegenpartijChartTab
@@ -130,6 +131,10 @@ class FinanceApp(QWidget):
         self.tijdlijn_tab = TijdlijnChartTab(app=self)
         self.main_tabs.addTab(self.tijdlijn_tab, "Tijdlijn")
 
+        # Label Tegenpartijen
+        self.label_tegenpartij_tab = LabelTegenpartijTab(app=self)
+        self.main_tabs.addTab(self.label_tegenpartij_tab, "Label Tegenpartijen")
+
         self.update_all_views()
 
     def get_filtered_by_selected_month(self):
@@ -205,6 +210,47 @@ class FinanceApp(QWidget):
 
         self.tijdlijn_tab.info_label.setText("")
         self.tijdlijn_tab.info_label.hide()
+
+    def show_tijdlijn_for_label(self, label_value):
+        """Show timeline for a specific label"""
+        filtered_df = self.summary_df[self.summary_df["Label"] == label_value].copy()
+        monthly = summarize_monthly_totals_by_label(filtered_df)
+        avg = filtered_df["Netto"].mean()
+        fig = plot_time_line(
+            monthly, title=f"Tijdlijn voor: {label_value} - Gemiddeld: {avg:.2f} per maand"
+        )
+        self.set_canvas(self.tijdlijn_tab, fig)
+        self.main_tabs.setCurrentWidget(self.tijdlijn_tab)
+        self.tijdlijn_tab.info_label.setText("")
+        self.tijdlijn_tab.info_label.hide()
+
+    def show_tegenpartijen_for_label(self, label_value):
+        """Show counterparties aggregated under a specific label"""
+        from visualization import plot_horizontal_bar
+        
+        filtered_df = self.summary_df[self.summary_df["Label"] == label_value].copy()
+        
+        # Group by Tegenpartij and sum Netto
+        tegenpartij_summary = (
+            filtered_df.groupby("Tegenpartij", as_index=False)["Netto"]
+            .sum()
+            .sort_values(by="Netto", ascending=False)
+        )
+        
+        total = tegenpartij_summary["Netto"].sum()
+        count = len(tegenpartij_summary)
+        
+        fig = plot_horizontal_bar(
+            tegenpartij_summary,
+            value_col="Netto",
+            category_col="Tegenpartij",
+            title=f"Tegenpartijen voor label: {label_value}\nTotaal: {total:.2f}€ - Aantal: {count}"
+        )
+        
+        self.set_canvas(self.label_tegenpartij_tab, fig)
+        self.main_tabs.setCurrentWidget(self.label_tegenpartij_tab)
+        self.label_tegenpartij_tab.info_label.setText("")
+        self.label_tegenpartij_tab.info_label.hide()
 
     def populate_labels_editor(self):
         self.labels_editor_tab.populate()
