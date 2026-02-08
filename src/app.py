@@ -167,19 +167,10 @@ class FinanceApp(QWidget):
         self.maand_netto_tab.update(filtered_df, isAlleSelected)
 
         # Update plots
-        self.update_tegenpartij_chart_plot(filtered_df, selected_month)
-        self.update_label_plot(filtered_df, selected_month)
-        self.update_monthly_plot()
-        self.populate_labels_editor()
-
-    def update_tegenpartij_chart_plot(self, df, selected_month):
-        self.tegenpartij_chart_tab.update_plot(df, selected_month)
-
-    def update_label_plot(self, df, selected_month):
-        self.label_tab.update_plot(df, selected_month)
-
-    def update_monthly_plot(self):
+        self.tegenpartij_chart_tab.update_plot(filtered_df, selected_month)
+        self.label_tab.update_plot(filtered_df, selected_month)
         self.monthly_tab.update_plot()
+        self.labels_editor_tab.populate()
 
     def set_canvas(self, tab_widget, fig, info_label=None, info_text=None):
         layout = tab_widget.layout()
@@ -206,24 +197,24 @@ class FinanceApp(QWidget):
     def show_canvas_context_menu(self, canvas, position):
         menu = QMenu()
         action_copy = menu.addAction("Kopieer grafiek")
-        
+
         action = menu.exec(canvas.mapToGlobal(position))
-        
+
         if action == action_copy:
             self.copy_canvas_to_clipboard(canvas)
 
     def copy_canvas_to_clipboard(self, canvas):
         fig = canvas.figure
-        
+
         buf = io.BytesIO()
-        fig.savefig(buf, format='png', dpi=150, bbox_inches='tight')
+        fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
         buf.seek(0)
-        
+
         pixmap = QPixmap()
         pixmap.loadFromData(buf.read())
-        
+
         QApplication.clipboard().setPixmap(pixmap)
-        
+
         buf.close()
 
     def detail_context_menu(self, position, index_name, table_view, model):
@@ -244,9 +235,6 @@ class FinanceApp(QWidget):
 
         self.tijdlijn_tab.info_label.setText("")
         self.tijdlijn_tab.info_label.hide()
-
-    def populate_labels_editor(self):
-        self.labels_editor_tab.populate()
 
     def show_empty(self):
         layout = QVBoxLayout(self)

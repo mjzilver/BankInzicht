@@ -44,12 +44,12 @@ class TegenpartijNettoTab(QWidget):
         index = self.table_view.indexAt(position)
         if not index.isValid():
             return
-        
+
         menu = QMenu()
         action_tijdlijn = menu.addAction("Tijdlijn voor tegenpartij")
-        
+
         action = menu.exec(self.table_view.viewport().mapToGlobal(position))
-        
+
         if action == action_tijdlijn:
             self.app.detail_context_menu(
                 position, "Tegenpartij", self.table_view, self.model

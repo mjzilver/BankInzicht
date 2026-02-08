@@ -151,7 +151,9 @@ def clean_transactions(df):
 
     df[COMMON_COLS["month"]] = df[COMMON_COLS["date"]].dt.to_period("M")
 
-    return df.drop_duplicates(subset=[COMMON_COLS["date"], COMMON_COLS["amount"], COMMON_COLS["counterparty"]])
+    return df.drop_duplicates(
+        subset=[COMMON_COLS["date"], COMMON_COLS["amount"], COMMON_COLS["counterparty"]]
+    )
 
 
 def merge_and_clean_labels(summary_df, label_df):

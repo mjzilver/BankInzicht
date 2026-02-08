@@ -41,13 +41,13 @@ class LabelNettoTab(QWidget):
             return
 
         label_value = self.model._df.iloc[index.row()]["Label"]
-        
+
         menu = QMenu()
         action_tijdlijn = menu.addAction("Tijdlijn voor label")
         action_tegenpartijen = menu.addAction("Tegenpartijen per label")
-        
+
         action = menu.exec(self.table_view.viewport().mapToGlobal(position))
-        
+
         if action == action_tijdlijn:
             self.app.label_details_viewer.show_tijdlijn_for_label(label_value)
         elif action == action_tegenpartijen:
