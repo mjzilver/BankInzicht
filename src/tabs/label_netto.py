@@ -49,6 +49,6 @@ class LabelNettoTab(QWidget):
         action = menu.exec(self.table_view.viewport().mapToGlobal(position))
         
         if action == action_tijdlijn:
-            self.app.show_tijdlijn_for_label(label_value)
+            self.app.label_details_viewer.show_tijdlijn_for_label(label_value)
         elif action == action_tegenpartijen:
-            self.app.show_tegenpartijen_for_label(label_value)
+            self.app.label_details_viewer.show_tegenpartijen_for_label(label_value)

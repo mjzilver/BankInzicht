@@ -159,5 +159,6 @@ def merge_and_clean_labels(summary_df, label_df):
     df[COMMON_COLS["label"]] = (
         df[COMMON_COLS["label"]].fillna("").str.strip().replace("", "geen label")
     )
+    df[COMMON_COLS["business"]] = df[COMMON_COLS["business"]].fillna(False).astype(bool)
     df[COMMON_COLS["business_nl"]] = df[COMMON_COLS["business"]].apply(format_zakelijk)
     return df

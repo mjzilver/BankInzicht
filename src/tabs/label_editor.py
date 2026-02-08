@@ -81,10 +81,15 @@ class LabelsEditorTab(QWidget):
         save_label(tp, label, zakelijk)
 
         mask = self.app.summary_df["Tegenpartij"] == tp
-        self.app.summary_df.loc[mask, "Label"] = label
+        
+        normalized_label = label.strip() if label else ""
+        normalized_label = normalized_label if normalized_label else "geen label"
+        
+        self.app.summary_df.loc[mask, "Label"] = normalized_label
         self.app.summary_df.loc[mask, "Zakelijk"] = bool(zakelijk)
         self.app.summary_df.loc[mask, "Zakelijk_NL"] = (
             "Zakelijk" if zakelijk else "Niet-zakelijk"
         )
-
+        
         self.app.update_all_views()
+    
