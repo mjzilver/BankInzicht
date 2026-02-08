@@ -205,7 +205,7 @@ class FinanceApp(QWidget):
 
     def show_canvas_context_menu(self, canvas, position):
         menu = QMenu()
-        action_copy = menu.addAction("Copy to clipboard")
+        action_copy = menu.addAction("Kopieer grafiek")
         
         action = menu.exec(canvas.mapToGlobal(position))
         
