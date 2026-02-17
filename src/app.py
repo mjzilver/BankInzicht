@@ -231,11 +231,7 @@ class FinanceApp(QWidget):
 
     def open_plot_window(self, canvas):
         fig = canvas.figure
-        try:
-            fig_copy = pickle.loads(pickle.dumps(fig))
-        except Exception:
-            fig_copy = fig
-
+        fig_copy = fig
         win = PopoutPlotWindow(fig_copy, parent=self)
         win.show()
 

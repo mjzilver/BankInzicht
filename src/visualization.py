@@ -49,6 +49,7 @@ def plot_horizontal_bar(df, value_col, category_col, title="", highlight=None):
         spine.set_visible(False)
     ax.set_title(title)
     fig.tight_layout()
+    plt.close(fig)
     return fig
 
 
@@ -134,6 +135,7 @@ def plot_time_line(df, title):
     ax.grid(True)
     fig.set_size_inches(10, 5)
     fig.tight_layout()
+    plt.close(fig)
     return fig
 
 
@@ -225,4 +227,5 @@ def plot_monthly_overview(df):
     ax.set_title("Maandelijkse Inkomsten -- Gestreept is negatief")
     ax.margins(y=0.1)
     fig.tight_layout()
+    plt.close(fig)
     return fig
