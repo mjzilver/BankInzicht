@@ -49,7 +49,6 @@ def filter_zakelijkheid(summary_df, zakelijkheid):
 
 
 def aggregate_label_netto(df):
-    """Return DataFrame with columns ['Label','Netto'] aggregated and sorted desc."""
     result = (
         df.copy()
         .groupby(["Label"], as_index=False)["Netto"]
@@ -80,8 +79,12 @@ def aggregate_month_netto(df, include_year_totals=False):
         year_totals["Maand_NL"] = "Totaal " + year_totals["Jaar"].astype(str)
         combined = pd.concat([year_totals, gb], ignore_index=True)
         combined["_is_total"] = combined["Maand_NL"].str.startswith("Totaal")
-        combined = combined.sort_values(by=["Jaar", "_is_total", "Maand"], ascending=[False, False, False]).drop(columns=["_is_total", "Jaar"], errors="ignore")
-        display_df = combined[["Maand_NL", "Netto"]].rename(columns={"Maand_NL": "Maand"})
+        combined = combined.sort_values(
+            by=["Jaar", "_is_total", "Maand"], ascending=[False, False, False]
+        ).drop(columns=["_is_total", "Jaar"], errors="ignore")
+        display_df = combined[["Maand_NL", "Netto"]].rename(
+            columns={"Maand_NL": "Maand"}
+        )
         return display_df
     else:
         return (

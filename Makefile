@@ -1,4 +1,5 @@
 SRC_DIR := src
+TEST_DIR := tests
 ENTRY := $(SRC_DIR)/app.py
 VENV_DIR := venv
 REQS := requirements.txt
@@ -24,7 +25,7 @@ test: $(VENV_DIR) install
 	PYTHONPATH=$(SRC_DIR) $(VENV_DIR)/bin/pytest -q
 
 format: $(VENV_DIR)
-	find $(SRC_DIR) -name "*.py" -exec $(VENV_DIR)/bin/black {} +
+	find $(SRC_DIR) $(TEST_DIR) -name "*.py" -exec $(VENV_DIR)/bin/black {} +
 
 clean:
 	rm -rf $(VENV_DIR)

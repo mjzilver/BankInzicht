@@ -1,4 +1,7 @@
-from analysis import summarize_monthly_totals_by_label, aggregate_tegenpartijen_for_label
+from analysis import (
+    summarize_monthly_totals_by_label,
+    aggregate_tegenpartijen_for_label,
+)
 from visualization import plot_horizontal_bar, plot_time_line
 
 

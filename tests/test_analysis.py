@@ -7,7 +7,6 @@ from analysis import (
     aggregate_tegenpartijen_for_label,
     summarize_by_counterparty_per_month,
     summarize_monthly_totals,
-    summarize_monthly_totals_by_label,
 )
 
 
@@ -42,5 +41,8 @@ def test_summarize_by_counterparty_and_month_and_monthly_totals(raw_transactions
     assert "Netto" in sum_by_cp.columns
 
     monthly = summarize_monthly_totals(sum_by_cp)
-    assert "inkomsten" in monthly.columns and "uitgaven" in monthly.columns and "netto" in monthly.columns
-
+    assert (
+        "inkomsten" in monthly.columns
+        and "uitgaven" in monthly.columns
+        and "netto" in monthly.columns
+    )

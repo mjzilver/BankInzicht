@@ -1,25 +1,13 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QTableView
+from PyQt6.QtWidgets import QWidget
 import pandas as pd
 
-from dataframe import DataFrameModel
+from tabs.table_base import TableTabBase
 from analysis import aggregate_month_netto
 
 
-class MaandNettoTab(QWidget):
+class MaandNettoTab(TableTabBase):
     def __init__(self, app):
-        super().__init__()
-        self.app = app
-        layout = QVBoxLayout(self)
-        self.setLayout(layout)
-
-        self.table_view = QTableView()
-        self.table_view.setSortingEnabled(True)
-        self.model = DataFrameModel()
-        self.table_view.setModel(self.model)
-        self.table_view.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-        layout.addWidget(self.table_view)
+        super().__init__(app, show_search=True, editable=False)
 
     def setDataFrame(self, df):
         self.model.setDataFrame(df)

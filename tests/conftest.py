@@ -31,6 +31,22 @@ def transactions_df():
 
 @pytest.fixture
 def raw_transactions():
+    # Dutch-style raw transactions
+    return pd.DataFrame(
+        {
+            "Date": ["20260101", "20260115", "20260201"],
+            "Bedrag": [1234.56, 0.00, 50.00],
+            "Naam": ["Desc A", "Desc B", "Desc C"],
+            "Tegenpartij": ["CP A", "CP B", "CP C"],
+            "Debit/credit": ["Debit", "Credit", "Credit"],
+            "Account": ["ACC1", "ACC1", "ACC1"],
+        }
+    )
+
+
+@pytest.fixture
+def raw_transactions_ing():
+    # ING-style English raw transactions
     return pd.DataFrame(
         {
             "Date": ["20260101", "20260115", "20260201"],
@@ -54,6 +70,7 @@ def own_ibans_df():
             "Tegenpartij": ["A", "B", "C"],
         }
     )
+
 
 def assert_no_mutation(func, df, *args, **kwargs):
     orig = df.copy(deep=True)

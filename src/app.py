@@ -161,7 +161,6 @@ class FinanceApp(QWidget):
 
         # Update tables
         self.tegenpartij_netto_tab.update(filtered_df)
-        self.tegenpartij_chart_tab.update(filtered_df)
         self.label_netto_tab.update(filtered_df)
         self.maand_netto_tab.update(filtered_df, isAlleSelected)
 
@@ -221,7 +220,16 @@ class FinanceApp(QWidget):
         if not index.isValid():
             return
 
-        value = model._df.iloc[index.row()][index_name]
+        # If the view is showing a proxy model, map the index to the source model
+        view_model = table_view.model()
+        if hasattr(view_model, "mapToSource"):
+            source_index = view_model.mapToSource(index)
+            source_model = view_model.sourceModel()
+        else:
+            source_index = index
+            source_model = view_model
+
+        value = source_model._df.iloc[source_index.row()][index_name]
         filtered_df = self.summary_df[self.summary_df[index_name] == value].copy()
         monthly = summarize_monthly_totals_by_label(filtered_df)
         avg = filtered_df["Netto"].mean()

@@ -1,14 +1,43 @@
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
-    QTableWidget,
-    QTableWidgetItem,
+    QTableView,
     QHeaderView,
     QComboBox,
+    QHBoxLayout,
+    QLineEdit,
+    QStyledItemDelegate,
 )
 
 from label_db import get_labels, save_label
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QModelIndex
+import pandas as pd
+
+from dataframe import DataFrameModel
+
+
+class ComboBoxDelegate(QStyledItemDelegate):
+    def __init__(self, items, parent=None):
+        super().__init__(parent)
+        self.items = items
+
+    def createEditor(self, parent, option, index):
+        cb = QComboBox(parent)
+        cb.addItems(self.items)
+        return cb
+
+    def setEditorData(self, editor, index):
+        val = index.model().data(index, Qt.ItemDataRole.EditRole)
+        if val is None:
+            val = index.model().data(index, Qt.ItemDataRole.DisplayRole)
+        if isinstance(val, bool):
+            editor.setCurrentText("Zakelijk" if val else "Niet-zakelijk")
+        else:
+            editor.setCurrentText(str(val))
+
+    def setModelData(self, editor, model, index):
+        text = editor.currentText()
+        model.setData(index, text, Qt.ItemDataRole.EditRole)
 
 
 class LabelsEditorTab(QWidget):
@@ -18,77 +47,79 @@ class LabelsEditorTab(QWidget):
         layout = QVBoxLayout(self)
         self.setLayout(layout)
 
-        self.labels_table = QTableWidget()
-        self.labels_table.setSortingEnabled(True)
-        self.labels_table.itemChanged.connect(self.label_item_changed)
-        layout.addWidget(self.labels_table)
+        top_hbox = QHBoxLayout()
+        top_hbox.addStretch()
+        self.search_box = QLineEdit()
+        self.search_box.setPlaceholderText("Zoek")
+        top_hbox.addWidget(self.search_box)
+        layout.addLayout(top_hbox)
+
+        self.table = QTableView()
+        self.table.setSortingEnabled(True)
+        self.table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        layout.addWidget(self.table)
+
+        self.model = None
+        self.proxy = None
 
     def populate(self):
         parties = sorted(self.app.summary_df["Tegenpartij"].str.strip().unique())
         labels_df = get_labels()
 
-        self.labels_table.blockSignals(True)
-        self.labels_table.clear()
-        self.labels_table.setColumnCount(3)
-        self.labels_table.setRowCount(len(parties))
-        self.labels_table.setHorizontalHeaderLabels(
-            ["Tegenpartij", "Label", "Zakelijk"]
-        )
-        self.labels_table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-
-        for i, tp in enumerate(parties):
-            item_tp = QTableWidgetItem(tp)
-            item_tp.setFlags(item_tp.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            self.labels_table.setItem(i, 0, item_tp)
-
+        rows = []
+        for tp in parties:
             row = labels_df[labels_df["Tegenpartij"] == tp]
             if not row.empty:
                 label = row.iloc[0]["Label"]
                 zakelijk = row.iloc[0]["Zakelijk"]
-                self.labels_table.setItem(i, 1, QTableWidgetItem(label))
-                combo = QComboBox()
-                combo.addItems(["Zakelijk", "Niet-zakelijk"])
-                combo.setCurrentText("Zakelijk" if zakelijk else "Niet-zakelijk")
-                combo.currentTextChanged.connect(
-                    lambda _, r=i: self.save_label_from_row(r)
-                )
-                self.labels_table.setCellWidget(i, 2, combo)
             else:
-                self.labels_table.setItem(i, 1, QTableWidgetItem(""))
-                combo = QComboBox()
-                combo.addItems(["Zakelijk", "Niet-zakelijk"])
-                combo.setCurrentText("Niet-zakelijk")
-                combo.currentTextChanged.connect(
-                    lambda _, r=i: self.save_label_from_row(r)
-                )
-                self.labels_table.setCellWidget(i, 2, combo)
+                label = ""
+                zakelijk = False
+            rows.append(
+                {
+                    "Tegenpartij": tp,
+                    "Label": label,
+                    "Zakelijk": "Zakelijk" if zakelijk else "Niet-zakelijk",
+                }
+            )
 
-        self.labels_table.blockSignals(False)
+        df = pd.DataFrame(rows, columns=["Tegenpartij", "Label", "Zakelijk"])
 
-    def label_item_changed(self, item):
-        if item.column() == 1:
-            self.save_label_from_row(item.row())
+        self.model = DataFrameModel(df, parent=self, editable=True)
+        self.proxy = self.model.createProxy(parent=self)
+        self.table.setModel(self.proxy)
 
-    def save_label_from_row(self, row):
-        tp = self.labels_table.item(row, 0).text()
-        label_item = self.labels_table.item(row, 1)
-        label = label_item.text() if label_item else ""
-        combo = self.labels_table.cellWidget(row, 2)
-        zakelijk = combo.currentText() == "Zakelijk" if combo else False
+        delegate = ComboBoxDelegate(["Zakelijk", "Niet-zakelijk"], parent=self.table)
+        self.table.setItemDelegateForColumn(2, delegate)
 
-        save_label(tp, label, zakelijk)
-
-        mask = self.app.summary_df["Tegenpartij"] == tp
-
-        normalized_label = label.strip() if label else ""
-        normalized_label = normalized_label if normalized_label else "geen label"
-
-        self.app.summary_df.loc[mask, "Label"] = normalized_label
-        self.app.summary_df.loc[mask, "Zakelijk"] = bool(zakelijk)
-        self.app.summary_df.loc[mask, "Zakelijk_NL"] = (
-            "Zakelijk" if zakelijk else "Niet-zakelijk"
+        self.search_box.textChanged.connect(
+            lambda t: self.proxy.setFilterWildcard(f"*{t}*")
         )
+
+        self.model.dataChanged.connect(self.on_model_changed)
+
+    def on_model_changed(
+        self, topLeft: QModelIndex, bottomRight: QModelIndex, roles=None
+    ):
+        df = self.model.getDataFrame()
+
+        start = topLeft.row()
+        end = bottomRight.row()
+        for r in range(start, end + 1):
+            tp = df.iloc[r]["Tegenpartij"]
+            label = df.iloc[r]["Label"]
+            zak_text = df.iloc[r]["Zakelijk"]
+            zakelijk = True if str(zak_text).lower().startswith("z") else False
+            save_label(tp, label, zakelijk)
+            mask = self.app.summary_df["Tegenpartij"] == tp
+            normalized_label = label.strip() if label else ""
+            normalized_label = normalized_label if normalized_label else "geen label"
+            self.app.summary_df.loc[mask, "Label"] = normalized_label
+            self.app.summary_df.loc[mask, "Zakelijk"] = bool(zakelijk)
+            self.app.summary_df.loc[mask, "Zakelijk_NL"] = (
+                "Zakelijk" if zakelijk else "Niet-zakelijk"
+            )
 
         self.app.update_all_views()

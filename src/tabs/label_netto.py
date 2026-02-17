@@ -1,29 +1,17 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QTableView, QMenu
+from PyQt6.QtWidgets import QWidget, QMenu
 from PyQt6.QtCore import Qt
 
-from dataframe import DataFrameModel
+from tabs.table_base import TableTabBase
 from analysis import aggregate_label_netto
 
 
-class LabelNettoTab(QWidget):
+class LabelNettoTab(TableTabBase):
     def __init__(self, app):
-        super().__init__()
-        self.app = app
-        layout = QVBoxLayout(self)
-        self.setLayout(layout)
-
-        self.table_view = QTableView()
-        self.table_view.setSortingEnabled(True)
-        self.model = DataFrameModel()
-        self.table_view.setModel(self.model)
-        self.table_view.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
+        super().__init__(app, show_search=True, editable=False)
         self.table_view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table_view.customContextMenuRequested.connect(
             self.label_detail_context_menu
         )
-        layout.addWidget(self.table_view)
 
     def setDataFrame(self, df):
         self.model.setDataFrame(df)
@@ -37,7 +25,8 @@ class LabelNettoTab(QWidget):
         if not index.isValid():
             return
 
-        label_value = self.model._df.iloc[index.row()]["Label"]
+        src_row = self.get_selected_source_row(index)
+        label_value = self.model._df.iloc[src_row]["Label"]
 
         menu = QMenu()
         action_tijdlijn = menu.addAction("Tijdlijn voor label")

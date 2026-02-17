@@ -53,10 +53,11 @@ def test_aggregate_month_netto_no_mutation_and_conserves_sum(summary_df):
     assert abs(non_total_sum - total) < 1e-9
 
 
-def test_summarize_by_counterparty_and_month_no_mutation_and_conserves_sum(transactions_df):
+def test_summarize_by_counterparty_and_month_no_mutation_and_conserves_sum(
+    transactions_df,
+):
     orig = transactions_df.copy(deep=True)
-    summed = summarize_by_counterparty_per_month(transactions_df)
-    pdt.assert_frame_equal(transactions_df, orig)
+    summed = assert_no_mutation(summarize_by_counterparty_per_month, transactions_df)
 
     monthly_totals = summarize_monthly_totals(summed)
     assert abs(monthly_totals["netto"].sum() - transactions_df["Bedrag"].sum()) < 1e-9
