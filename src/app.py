@@ -24,18 +24,12 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 import pickle
 from plot_window import PopoutPlotWindow
 
-from data_loader import (
-    load_csvs,
-    clean_transactions,
-    merge_and_clean_labels,
-    import_and_merge,
-)
+from importer import load_initial_data, import_files
 from analysis import (
     summarize_by_counterparty_per_month,
     summarize_monthly_totals_by_label,
 )
 import settings
-from glob import glob
 from tabs.label_chart import LabelChartTab
 from tabs.label_details import LabelDetailsViewer
 from tabs.label_editor import LabelsEditorTab
@@ -62,31 +56,7 @@ class FinanceApp(QWidget):
 
         init_db()
 
-        data_dir = settings.DATA_DIR
-        files = glob(os.path.join(data_dir, "*.csv")) if os.path.exists(data_dir) else []
-
-        if files:
-            try:
-                raw = load_csvs(data_dir)
-                self.df = clean_transactions(raw) if not raw.empty else pd.DataFrame()
-            except Exception:
-                # try per-file cleaning without copying
-                try:
-                    self.df = import_and_merge(None, files, copy_files=False)
-                except Exception:
-                    self.df = pd.DataFrame()
-        else:
-            self.df = pd.DataFrame()
-
-        if not self.df.empty:
-            self.summary_df = summarize_by_counterparty_per_month(self.df)
-            self.summary_df["Maand_NL"] = self.summary_df["Maand"].apply(format_month)
-            self.summary_df = self.summary_df.sort_values(
-                by=["Maand", "Netto"], ascending=[True, False]
-            )
-            self.summary_df = merge_and_clean_labels(self.summary_df, get_labels())
-        else:
-            self.summary_df = pd.DataFrame()
+        self.df, self.summary_df = load_initial_data()
 
         main_layout = QVBoxLayout(self)
         self.setLayout(main_layout)
@@ -169,10 +139,6 @@ class FinanceApp(QWidget):
         self.monthly_tab = MaandoverzichtTab(app=self)
         self.main_tabs.addTab(self.monthly_tab, "Maandoverzicht")
 
-        # Label Editor
-        self.labels_editor_tab = LabelsEditorTab(app=self)
-        self.main_tabs.addTab(self.labels_editor_tab, "Label Editor")
-
         # Tijdlijn
         self.tijdlijn_tab = TijdlijnChartTab(app=self)
         self.main_tabs.addTab(self.tijdlijn_tab, "Tijdlijn")
@@ -180,6 +146,10 @@ class FinanceApp(QWidget):
         # Tegenpartijen per Label
         self.label_tegenpartij_tab = LabelTegenpartijTab(app=self)
         self.main_tabs.addTab(self.label_tegenpartij_tab, "Tegenpartijen per Label")
+
+        # Label Editor
+        self.labels_editor_tab = LabelsEditorTab(app=self)
+        self.main_tabs.addTab(self.labels_editor_tab, "Label Editor")
 
         # Label details viewer
         self.label_details_viewer = LabelDetailsViewer(app=self)
@@ -215,6 +185,8 @@ class FinanceApp(QWidget):
         self.tegenpartij_chart_tab.update_plot(filtered_df, selected_month)
         self.label_tab.update_plot(filtered_df, selected_month)
         self.monthly_tab.update_plot()
+
+        # Editor
         self.labels_editor_tab.populate()
 
     def set_canvas(self, tab_widget, fig, info_label=None, info_text=None):
@@ -340,15 +312,7 @@ class FinanceApp(QWidget):
 
     def _handle_import_files(self, file_paths: list[str]):
         try:
-            self.df = import_and_merge(self.df if not self.df.empty else None, file_paths, copy_files=True)
-            self.summary_df = (
-                summarize_by_counterparty_per_month(self.df)
-                if not self.df.empty
-                else pd.DataFrame()
-            )
-            if not self.summary_df.empty:
-                self.summary_df["Maand_NL"] = self.summary_df["Maand"].apply(format_month)
-                self.summary_df = merge_and_clean_labels(self.summary_df, get_labels())
+            self.df, self.summary_df = import_files(self.df if not self.df.empty else None, file_paths, copy_files=True)
             self.update_all_views()
         except Exception as e:
             QMessageBox.critical(self, "Import fout", str(e))
