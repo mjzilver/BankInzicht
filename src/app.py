@@ -12,14 +12,13 @@ from PyQt6.QtWidgets import (
     QSplitter,
     QPushButton,
     QMenu,
-    QMainWindow,
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QSizePolicy, QComboBox
 from PyQt6 import QtGui
 from PyQt6.QtGui import QPixmap
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 import pickle
 from plot_window import PopoutPlotWindow
 
