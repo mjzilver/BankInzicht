@@ -1,3 +1,4 @@
+import copy
 import io
 import os
 import sys
@@ -230,8 +231,8 @@ class FinanceApp(QWidget):
             self.open_plot_window(canvas)
 
     def open_plot_window(self, canvas):
-        fig = canvas.figure
-        fig_copy = fig
+        fig_copy = copy.deepcopy(canvas.figure)
+
         win = PopoutPlotWindow(fig_copy, parent=self)
         win.show()
 
