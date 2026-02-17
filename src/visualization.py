@@ -207,7 +207,21 @@ def plot_monthly_overview(df):
     ax.set_ylabel("Bedrag (€)")
     ax.set_xticks(x + width / 4)
     ax.set_xticklabels(months, rotation=45, ha="right")
-    ax.legend(title="Labelkleur en soort", bbox_to_anchor=(1.05, 1), loc="upper left")
+    fig.subplots_adjust(right=0.75)
+
+    n_labels = len(labels)
+    ncol = 1
+    if n_labels > 20:
+        ncol = int(np.ceil(n_labels / 20))
+
+    ax.legend(
+        title="Labelkleur en soort",
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),
+        fontsize=8,
+        title_fontsize=9,
+        ncol=ncol,
+    )
     ax.set_title("Maandelijkse Inkomsten -- Gestreept is negatief")
     ax.margins(y=0.1)
     fig.tight_layout()

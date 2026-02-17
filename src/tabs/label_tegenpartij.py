@@ -19,7 +19,7 @@ class LabelTegenpartijTab(QWidget):
 
         self.current_label = None
 
-    def update_for_label(self, label_value, focus = False):
+    def update_for_label(self, label_value, focus=False):
         filtered_summary_df, selected_month = self.app.get_filtered_by_selected_month()
         target_df = (
             self.app.summary_df
