@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg, NavigationToolbar2QT
 
-
+# TODO: custom buttons in Dutch
 class PopoutPlotWindow(QMainWindow):
     def __init__(self, figure, parent=None):
         super().__init__(parent)

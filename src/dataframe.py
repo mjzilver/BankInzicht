@@ -28,7 +28,7 @@ class DataFrameModel(QAbstractTableModel):
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         if not index.isValid():
             return QVariant()
-        # For editing, return the raw value for EditRole
+
         if role == Qt.ItemDataRole.EditRole:
             val = self._df.iloc[index.row(), index.column()]
             return val
@@ -53,7 +53,7 @@ class DataFrameModel(QAbstractTableModel):
             return False
         row = index.row()
         col = index.column()
-        # update underlying dataframe
+
         try:
             self._df.iat[row, col] = value
         except Exception:

@@ -1,6 +1,7 @@
 import io
 import os
 import sys
+import pandas as pd
 from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
@@ -17,17 +18,24 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QSizePolicy, QComboBox
 from PyQt6 import QtGui
 from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QFileDialog, QMessageBox
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 import pickle
 from plot_window import PopoutPlotWindow
 
-from data_loader import load_csvs, clean_transactions, merge_and_clean_labels
+from data_loader import (
+    load_csvs,
+    clean_transactions,
+    merge_and_clean_labels,
+    import_and_merge,
+)
 from analysis import (
     summarize_by_counterparty_per_month,
     summarize_monthly_totals_by_label,
 )
 import settings
+from glob import glob
 from tabs.label_chart import LabelChartTab
 from tabs.label_details import LabelDetailsViewer
 from tabs.label_editor import LabelsEditorTab
@@ -44,27 +52,41 @@ from visualization import (
 from utils import format_month
 from label_db import get_labels, init_db
 
-
 class FinanceApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Financieel Overzicht")
         self.setWindowIcon(QtGui.QIcon("app_icon.ico"))
         self.resize(1200, 800)
+        self.setAcceptDrops(True)
 
         init_db()
-        self.df = clean_transactions(load_csvs(settings.DATA_DIR))
 
-        if self.df.empty:
-            self.show_empty()
-            return
+        data_dir = settings.DATA_DIR
+        files = glob(os.path.join(data_dir, "*.csv")) if os.path.exists(data_dir) else []
 
-        self.summary_df = summarize_by_counterparty_per_month(self.df)
-        self.summary_df["Maand_NL"] = self.summary_df["Maand"].apply(format_month)
-        self.summary_df = self.summary_df.sort_values(
-            by=["Maand", "Netto"], ascending=[True, False]
-        )
-        self.summary_df = merge_and_clean_labels(self.summary_df, get_labels())
+        if files:
+            try:
+                raw = load_csvs(data_dir)
+                self.df = clean_transactions(raw) if not raw.empty else pd.DataFrame()
+            except Exception:
+                # try per-file cleaning without copying
+                try:
+                    self.df = import_and_merge(None, files, copy_files=False)
+                except Exception:
+                    self.df = pd.DataFrame()
+        else:
+            self.df = pd.DataFrame()
+
+        if not self.df.empty:
+            self.summary_df = summarize_by_counterparty_per_month(self.df)
+            self.summary_df["Maand_NL"] = self.summary_df["Maand"].apply(format_month)
+            self.summary_df = self.summary_df.sort_values(
+                by=["Maand", "Netto"], ascending=[True, False]
+            )
+            self.summary_df = merge_and_clean_labels(self.summary_df, get_labels())
+        else:
+            self.summary_df = pd.DataFrame()
 
         main_layout = QVBoxLayout(self)
         self.setLayout(main_layout)
@@ -76,9 +98,17 @@ class FinanceApp(QWidget):
         top_controls.addWidget(QLabel("Filter op maand:"))
 
         self.month_combo = QComboBox()
-        months = self.summary_df.drop_duplicates("Maand")[
-            ["Maand", "Maand_NL"]
-        ].sort_values("Maand")
+
+        if not self.summary_df.empty and {"Maand", "Maand_NL"}.issubset(
+            set(self.summary_df.columns)
+        ):
+            months = (
+                self.summary_df.drop_duplicates("Maand")[["Maand", "Maand_NL"]]
+                .sort_values("Maand")
+            )
+        else:
+            months = pd.DataFrame(columns=["Maand", "Maand_NL"])
+
         self.months_df = months
         self.month_combo.addItem("Alle maanden")
         for m in months["Maand_NL"]:
@@ -93,8 +123,19 @@ class FinanceApp(QWidget):
         self.theme_button.clicked.connect(self.toggle_theme)
         top_controls.addWidget(self.theme_button)
 
+        # --- Import button ---
+        self.import_button = QPushButton("Importeer bestanden")
+        self.import_button.clicked.connect(self.on_import_button_clicked)
+        top_controls.addWidget(self.import_button)
+
         top_controls.addStretch()
         main_layout.addLayout(top_controls)
+
+        self.no_data_label = QLabel(
+            "Geen data geladen. Klik op 'Importeer bestanden' of sleep CSV-bestanden hierheen."
+        )
+        self.no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(self.no_data_label)
 
         self.top_tabs = QTabWidget()
 
@@ -143,7 +184,11 @@ class FinanceApp(QWidget):
         # Label details viewer
         self.label_details_viewer = LabelDetailsViewer(app=self)
 
-        self.update_all_views()
+        if not self.summary_df.empty:
+            self.no_data_label.hide()
+            self.update_all_views()
+        else:
+            self.no_data_label.show()
 
     def get_filtered_by_selected_month(self):
         selected = self.month_combo.currentText()
@@ -235,7 +280,6 @@ class FinanceApp(QWidget):
         if not index.isValid():
             return
 
-        # If the view is showing a proxy model, map the index to the source model
         view_model = table_view.model()
         if hasattr(view_model, "mapToSource"):
             source_index = view_model.mapToSource(index)
@@ -267,6 +311,47 @@ class FinanceApp(QWidget):
         msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(msg)
         self.setLayout(layout)
+
+    def on_import_button_clicked(self):
+        start_dir = settings.DATA_DIR if os.path.exists(settings.DATA_DIR) else os.path.expanduser("~")
+        files, _ = QFileDialog.getOpenFileNames(
+            self,
+            "Selecteer CSV-bestanden om te importeren",
+            start_dir,
+            "CSV Files (*.csv);;All Files (*)",
+        )
+        if not files:
+            return
+        self._handle_import_files(files)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        urls = event.mimeData().urls()
+        paths = [u.toLocalFile() for u in urls if u.isLocalFile()]
+        csvs = [p for p in paths if p.lower().endswith(".csv")]
+        if not csvs:
+            return
+        self._handle_import_files(csvs)
+
+    def _handle_import_files(self, file_paths: list[str]):
+        try:
+            self.df = import_and_merge(self.df if not self.df.empty else None, file_paths, copy_files=True)
+            self.summary_df = (
+                summarize_by_counterparty_per_month(self.df)
+                if not self.df.empty
+                else pd.DataFrame()
+            )
+            if not self.summary_df.empty:
+                self.summary_df["Maand_NL"] = self.summary_df["Maand"].apply(format_month)
+                self.summary_df = merge_and_clean_labels(self.summary_df, get_labels())
+            self.update_all_views()
+        except Exception as e:
+            QMessageBox.critical(self, "Import fout", str(e))
 
     def toggle_theme(self):
         new_theme = "dark" if settings.UI_THEME == "light" else "light"
