@@ -13,10 +13,18 @@ class MaandoverzichtTab(QWidget):
 
         filter_layout = QHBoxLayout()
         filter_layout.addWidget(QLabel("Filter op zakelijkheid:"))
+
         self.zakelijkheid_combo = QComboBox()
         self.zakelijkheid_combo.addItems(["Alle", "Zakelijk", "Niet-zakelijk"])
         self.zakelijkheid_combo.currentTextChanged.connect(self.update_plot)
         filter_layout.addWidget(self.zakelijkheid_combo)
+
+        filter_layout.addWidget(QLabel("Filter per maand:"))
+        self.maand_combo = QComboBox()
+        self.maand_combo.addItem("Alle maanden")
+        self.maand_combo.currentTextChanged.connect(self.update_plot)
+        filter_layout.addWidget(self.maand_combo)
+
         filter_layout.addStretch()
         layout.addLayout(filter_layout)
 
@@ -24,5 +32,13 @@ class MaandoverzichtTab(QWidget):
         zakelijkheid = self.zakelijkheid_combo.currentText()
         filtered_label_df = filter_zakelijkheid(self.app.summary_df, zakelijkheid)
         monthly = summarize_monthly_totals_by_label(filtered_label_df)
+
+        for maand in monthly["Maand"].unique():
+            if maand not in [self.maand_combo.itemText(i) for i in range(self.maand_combo.count())]:
+                self.maand_combo.addItem(maand)
+
+        if self.maand_combo.currentText() != "Alle maanden":
+            monthly = monthly[monthly["Maand"] == self.maand_combo.currentText()]
+
         fig = plot_monthly_overview(monthly)
         self.app.set_canvas(self, fig)

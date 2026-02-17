@@ -128,17 +128,17 @@ class FinanceApp(QWidget):
         self.monthly_tab = MaandoverzichtTab(app=self)
         self.main_tabs.addTab(self.monthly_tab, "Maandoverzicht")
 
-        # Tegenpartij Labels
+        # Label Editor
         self.labels_editor_tab = LabelsEditorTab(app=self)
-        self.main_tabs.addTab(self.labels_editor_tab, "Tegenpartij Labels")
+        self.main_tabs.addTab(self.labels_editor_tab, "Label Editor")
 
         # Tijdlijn
         self.tijdlijn_tab = TijdlijnChartTab(app=self)
         self.main_tabs.addTab(self.tijdlijn_tab, "Tijdlijn")
 
-        # Label Tegenpartijen
+        # Tegenpartijen per Label
         self.label_tegenpartij_tab = LabelTegenpartijTab(app=self)
-        self.main_tabs.addTab(self.label_tegenpartij_tab, "Label Tegenpartijen")
+        self.main_tabs.addTab(self.label_tegenpartij_tab, "Tegenpartijen per Label")
 
         # Label details viewer
         self.label_details_viewer = LabelDetailsViewer(app=self)
