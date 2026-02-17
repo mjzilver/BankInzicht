@@ -1,4 +1,4 @@
-from analysis import summarize_monthly_totals_by_label
+from analysis import summarize_monthly_totals_by_label, aggregate_tegenpartijen_for_label
 from visualization import plot_horizontal_bar, plot_time_line
 
 
@@ -22,19 +22,9 @@ class LabelDetailsViewer:
         self.app.tijdlijn_tab.info_label.hide()
 
     def show_tegenpartijen_for_label(self, label_value):
-        filtered_df = self.app.summary_df[
-            self.app.summary_df["Label"] == label_value
-        ].copy()
-
-        # Group by Tegenpartij and sum Netto
-        tegenpartij_summary = (
-            filtered_df.groupby("Tegenpartij", as_index=False)["Netto"]
-            .sum()
-            .sort_values(by="Netto", ascending=False)
+        tegenpartij_summary, total, count = aggregate_tegenpartijen_for_label(
+            self.app.summary_df, label_value
         )
-
-        total = tegenpartij_summary["Netto"].sum()
-        count = len(tegenpartij_summary)
 
         fig = plot_horizontal_bar(
             tegenpartij_summary,

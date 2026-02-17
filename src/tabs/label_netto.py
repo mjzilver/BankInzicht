@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QTableView, QMenu
 from PyQt6.QtCore import Qt
 
 from dataframe import DataFrameModel
+from analysis import aggregate_label_netto
 
 
 class LabelNettoTab(QWidget):
@@ -28,11 +29,7 @@ class LabelNettoTab(QWidget):
         self.model.setDataFrame(df)
 
     def update(self, df):
-        grouped_by_label = (
-            df.groupby(["Label"], as_index=False)["Netto"]
-            .sum()
-            .sort_values(by="Netto", ascending=False)
-        )
+        grouped_by_label = aggregate_label_netto(df)
         self.setDataFrame(grouped_by_label)
 
     def label_detail_context_menu(self, position):

@@ -1,7 +1,6 @@
 import io
 import os
 import sys
-import pandas as pd
 from PyQt6.QtWidgets import (
     QApplication,
     QWidget,
@@ -14,7 +13,7 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QMenu,
 )
-from PyQt6.QtCore import Qt, QBuffer, QIODevice
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QSizePolicy, QComboBox
 from PyQt6 import QtGui
 from PyQt6.QtGui import QPixmap

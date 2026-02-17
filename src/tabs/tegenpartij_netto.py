@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHeaderView, QTableView, QMenu
 from PyQt6.QtCore import Qt
 
 from dataframe import DataFrameModel
+from analysis import aggregate_tegenpartij_label_zakelijk
 
 
 class TegenpartijNettoTab(QWidget):
@@ -28,17 +29,9 @@ class TegenpartijNettoTab(QWidget):
         self.model.setDataFrame(df)
 
     def update(self, df):
-        tegenpartij_df = df[["Tegenpartij", "Netto", "Label", "Zakelijk_NL"]].copy()
-        tegenpartij_df = tegenpartij_df.rename(columns={"Zakelijk_NL": "Zakelijk"})
-        tegenpartij_df = (
-            tegenpartij_df.groupby(
-                ["Tegenpartij", "Label", "Zakelijk"], as_index=False
-            )["Netto"]
-            .sum()
-            .sort_values(by="Netto", ascending=False)
-        )
-        self.setDataFrame(tegenpartij_df)
-        return tegenpartij_df
+        result = aggregate_tegenpartij_label_zakelijk(df)
+        self.setDataFrame(result)
+        return result
 
     def tegenpartij_detail_context_menu(self, position):
         index = self.table_view.indexAt(position)

@@ -6,7 +6,7 @@ PYTHON := python3
 PIP := $(VENV_DIR)/bin/pip
 PY := $(VENV_DIR)/bin/python
 
-.PHONY: install run format clean
+.PHONY: install run format clean test
 
 all: run
 
@@ -19,6 +19,9 @@ install: $(VENV_DIR)
 
 run: $(VENV_DIR) install
 	$(PY) $(ENTRY)
+
+test: $(VENV_DIR) install
+	PYTHONPATH=$(SRC_DIR) $(VENV_DIR)/bin/pytest -q
 
 format: $(VENV_DIR)
 	find $(SRC_DIR) -name "*.py" -exec $(VENV_DIR)/bin/black {} +
