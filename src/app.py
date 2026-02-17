@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
     QSplitter,
     QPushButton,
     QMenu,
+    QMainWindow,
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QSizePolicy, QComboBox
@@ -19,6 +20,8 @@ from PyQt6 import QtGui
 from PyQt6.QtGui import QPixmap
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+import pickle
+from plot_window import PopoutPlotWindow
 
 from data_loader import load_csvs, clean_transactions, merge_and_clean_labels
 from analysis import (
@@ -195,11 +198,24 @@ class FinanceApp(QWidget):
     def show_canvas_context_menu(self, canvas, position):
         menu = QMenu()
         action_copy = menu.addAction("Kopieer grafiek")
+        action_open = menu.addAction("Open in nieuw venster")
 
         action = menu.exec(canvas.mapToGlobal(position))
 
         if action == action_copy:
             self.copy_canvas_to_clipboard(canvas)
+        elif action == action_open:
+            self.open_plot_window(canvas)
+
+    def open_plot_window(self, canvas):
+        fig = canvas.figure
+        try:
+            fig_copy = pickle.loads(pickle.dumps(fig))
+        except Exception:
+            fig_copy = fig
+
+        win = PopoutPlotWindow(fig_copy, parent=self)
+        win.show()
 
     def copy_canvas_to_clipboard(self, canvas):
         fig = canvas.figure
