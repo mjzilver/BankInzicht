@@ -1,6 +1,3 @@
-from PyQt6.QtWidgets import QWidget
-import pandas as pd
-
 from tabs.table_base import TableTabBase
 from analysis import aggregate_month_netto
 

@@ -46,6 +46,7 @@ from visualization import (
 from utils import format_month
 from label_db import get_labels, init_db
 
+
 class FinanceApp(QWidget):
     def __init__(self):
         super().__init__()
@@ -72,10 +73,9 @@ class FinanceApp(QWidget):
         if not self.summary_df.empty and {"Maand", "Maand_NL"}.issubset(
             set(self.summary_df.columns)
         ):
-            months = (
-                self.summary_df.drop_duplicates("Maand")[["Maand", "Maand_NL"]]
-                .sort_values("Maand")
-            )
+            months = self.summary_df.drop_duplicates("Maand")[
+                ["Maand", "Maand_NL"]
+            ].sort_values("Maand")
         else:
             months = pd.DataFrame(columns=["Maand", "Maand_NL"])
 
@@ -186,6 +186,12 @@ class FinanceApp(QWidget):
         self.label_tab.update_plot(filtered_df, selected_month)
         self.monthly_tab.update_plot()
 
+        # Refresh Tegenpartijen per Label tab if it currently shows a label
+        if getattr(self.label_tegenpartij_tab, "current_label", None):
+            self.label_tegenpartij_tab.update_for_label(
+                self.label_tegenpartij_tab.current_label
+            )
+
         # Editor
         self.labels_editor_tab.populate()
 
@@ -285,7 +291,11 @@ class FinanceApp(QWidget):
         self.setLayout(layout)
 
     def on_import_button_clicked(self):
-        start_dir = settings.DATA_DIR if os.path.exists(settings.DATA_DIR) else os.path.expanduser("~")
+        start_dir = (
+            settings.DATA_DIR
+            if os.path.exists(settings.DATA_DIR)
+            else os.path.expanduser("~")
+        )
         files, _ = QFileDialog.getOpenFileNames(
             self,
             "Selecteer CSV-bestanden om te importeren",
@@ -312,7 +322,9 @@ class FinanceApp(QWidget):
 
     def _handle_import_files(self, file_paths: list[str]):
         try:
-            self.df, self.summary_df = import_files(self.df if not self.df.empty else None, file_paths, copy_files=True)
+            self.df, self.summary_df = import_files(
+                self.df if not self.df.empty else None, file_paths, copy_files=True
+            )
             self.update_all_views()
         except Exception as e:
             QMessageBox.critical(self, "Import fout", str(e))

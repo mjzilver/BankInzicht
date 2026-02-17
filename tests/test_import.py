@@ -33,7 +33,7 @@ def test_import_and_merge_copies_and_dedupes(tmp_path):
     res = import_and_merge(None, [str(p1), str(p2)], copy_files=True)
 
     assert len(res) == 1
-    
+
     files = list(Path(settings.DATA_DIR).glob("*.csv"))
     assert len(files) >= 1
 
@@ -59,4 +59,3 @@ def test_import_and_merge_mixed_formats(tmp_path):
     assert len(res) == 2
     assert "Bedrag" in res.columns
     assert "Tegenpartij" in res.columns
-

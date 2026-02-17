@@ -70,7 +70,7 @@ BANK_CONFIGS = {
     },
 }
 
-# TODO: allow mixed formats in one directory, or detect per-file instead of per-directory
+
 def load_csvs(directory):
     files = glob(os.path.join(directory, CSV_GLOB))
     dfs = [
@@ -80,27 +80,21 @@ def load_csvs(directory):
     return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
 
 
-def _read_single_file(path: str) -> pd.DataFrame:
-    """Read a single CSV/TSV file with an encoding fallback and return a DataFrame.
-
-    Keeps dtype as str on read to allow downstream cleaning.
-    """
+def _read_single_file(path):
     encodings = ("utf-8", "latin1")
     last_exc = None
     for enc in encodings:
         try:
-            return pd.read_csv(path, sep=",", dtype=str, encoding=enc).rename(columns=str.strip)
+            return pd.read_csv(path, sep=",", dtype=str, encoding=enc).rename(
+                columns=str.strip
+            )
         except Exception as e:
             last_exc = e
             continue
     raise last_exc
 
 
-def load_files(file_paths: List[str]) -> pd.DataFrame:
-    """Load multiple files (paths) and return a concatenated DataFrame.
-
-    This is a per-file import helper intended for the import button / drag-drop flows.
-    """
+def load_files(file_paths):
     dfs = []
     for p in file_paths:
         try:
@@ -111,8 +105,7 @@ def load_files(file_paths: List[str]) -> pd.DataFrame:
     return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
 
 
-def _copy_into_data_dir(src_paths: List[str], dest_dir: Optional[str] = None) -> List[str]:
-    """Copy source files into dest_dir (defaults to settings.DATA_DIR) and return new paths."""
+def _copy_into_data_dir(src_paths, dest_dir=None):
     if dest_dir is None:
         dest_dir = settings.DATA_DIR
     Path(dest_dir).mkdir(parents=True, exist_ok=True)
@@ -120,7 +113,7 @@ def _copy_into_data_dir(src_paths: List[str], dest_dir: Optional[str] = None) ->
     for src in src_paths:
         srcp = Path(src)
         destp = Path(dest_dir) / srcp.name
-        # avoid overwriting existing files
+
         if destp.exists():
             stem = destp.stem
             suffix = destp.suffix
@@ -136,29 +129,16 @@ def _copy_into_data_dir(src_paths: List[str], dest_dir: Optional[str] = None) ->
     return out_paths
 
 
-def import_and_merge(
-    existing_df: Optional[pd.DataFrame], file_paths: List[str], copy_files: bool = True
-) -> pd.DataFrame:
-    """Import files, optionally copy them into `settings.DATA_DIR`, clean and merge with existing_df.
-
-    - Reads files with `load_files`
-    - If `copy_files`, copies originals into `settings.DATA_DIR`
-    - Runs `clean_transactions` on the concatenated new data
-    - Concatenates with `existing_df` (if any) and drops duplicates using the
-      same subset used by `clean_transactions`
-    """
+def import_and_merge(existing_df, file_paths, copy_files=True):
     if not file_paths:
         return existing_df if existing_df is not None else pd.DataFrame()
-
 
     read_paths = list(file_paths)
     if copy_files:
         try:
             read_paths = _copy_into_data_dir(file_paths, settings.DATA_DIR)
         except Exception:
-            # if copy fails, continue and read in-place
             read_paths = list(file_paths)
-
 
     cleaned_frames: List[pd.DataFrame] = []
     for p in read_paths:
@@ -168,14 +148,13 @@ def import_and_merge(
             if not cleaned.empty:
                 cleaned_frames.append(cleaned)
         except Exception:
-            # skip files that fail to read or clean; caller/UI should report if needed
             continue
 
     if not cleaned_frames:
         return existing_df if existing_df is not None else pd.DataFrame()
 
     cleaned = pd.concat(cleaned_frames, ignore_index=True)
-    # always drop duplicates from the newly imported data
+
     cleaned = cleaned.drop_duplicates(
         subset=[COMMON_COLS["date"], COMMON_COLS["amount"], COMMON_COLS["counterparty"]]
     )

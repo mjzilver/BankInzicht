@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QMenu
+from PyQt6.QtWidgets import QMenu
 from PyQt6.QtCore import Qt
 
 from tabs.table_base import TableTabBase

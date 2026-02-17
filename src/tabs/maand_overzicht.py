@@ -34,7 +34,9 @@ class MaandoverzichtTab(QWidget):
         monthly = summarize_monthly_totals_by_label(filtered_label_df)
 
         for maand in monthly["Maand"].unique():
-            if maand not in [self.maand_combo.itemText(i) for i in range(self.maand_combo.count())]:
+            if maand not in [
+                self.maand_combo.itemText(i) for i in range(self.maand_combo.count())
+            ]:
                 self.maand_combo.addItem(maand)
 
         if self.maand_combo.currentText() != "Alle maanden":

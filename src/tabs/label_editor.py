@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 
 from label_db import get_labels, save_label
 from PyQt6.QtCore import Qt, QModelIndex
+from PyQt6.QtWidgets import QAbstractItemView
 import pandas as pd
 
 from dataframe import DataFrameModel
@@ -55,6 +56,7 @@ class LabelsEditorTab(QWidget):
         layout.addLayout(top_hbox)
 
         self.table = QTableView()
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.AllEditTriggers)
         self.table.setSortingEnabled(True)
         self.table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch
@@ -107,19 +109,34 @@ class LabelsEditorTab(QWidget):
 
         start = topLeft.row()
         end = bottomRight.row()
+        changed_any = False
         for r in range(start, end + 1):
             tp = df.iloc[r]["Tegenpartij"]
             label = df.iloc[r]["Label"]
             zak_text = df.iloc[r]["Zakelijk"]
             zakelijk = True if str(zak_text).lower().startswith("z") else False
-            save_label(tp, label, zakelijk)
+
             mask = self.app.summary_df["Tegenpartij"] == tp
+            if mask.any():
+                current_label = self.app.summary_df.loc[mask, "Label"].iloc[0]
+                current_zak = bool(self.app.summary_df.loc[mask, "Zakelijk"].iloc[0])
+            else:
+                current_label = None
+                current_zak = None
+
             normalized_label = label.strip() if label else ""
             normalized_label = normalized_label if normalized_label else "geen label"
+
+            if current_label == normalized_label and current_zak == bool(zakelijk):
+                continue
+
+            save_label(tp, label, zakelijk)
             self.app.summary_df.loc[mask, "Label"] = normalized_label
             self.app.summary_df.loc[mask, "Zakelijk"] = bool(zakelijk)
             self.app.summary_df.loc[mask, "Zakelijk_NL"] = (
                 "Zakelijk" if zakelijk else "Niet-zakelijk"
             )
+            changed_any = True
 
-        self.app.update_all_views()
+        if changed_any:
+            self.app.update_all_views()
