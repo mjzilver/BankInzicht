@@ -26,8 +26,11 @@ class TegenpartijNettoTab(TableTabBase):
         if not index.isValid():
             return
 
+        src_row = self.get_selected_source_row(index)
+        tegenpartij = self.model._df.iloc[src_row]["Tegenpartij"]
+
         menu = QMenu()
-        action_tijdlijn = menu.addAction("Tijdlijn voor tegenpartij")
+        action_tijdlijn = menu.addAction(f"Tijdlijn voor '{tegenpartij}'")
 
         action = menu.exec(self.table_view.viewport().mapToGlobal(position))
 

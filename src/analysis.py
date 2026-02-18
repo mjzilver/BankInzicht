@@ -1,5 +1,6 @@
 import pandas as pd
 from utils import format_month
+from constants import Zakelijkheid
 
 
 def summarize_by_counterparty_per_month(df):
@@ -40,9 +41,9 @@ def summarize_monthly_totals_by_label(summary_df):
 
 
 def filter_zakelijkheid(summary_df, zakelijkheid):
-    if zakelijkheid == "Zakelijk":
+    if zakelijkheid == Zakelijkheid.BUSINESS.value:
         return summary_df[summary_df["Zakelijk"]]
-    elif zakelijkheid == "Niet-zakelijk":
+    elif zakelijkheid == Zakelijkheid.NON_BUSINESS.value:
         return summary_df[~summary_df["Zakelijk"]]
     else:
         return summary_df

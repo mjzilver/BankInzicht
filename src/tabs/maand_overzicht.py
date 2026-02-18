@@ -1,4 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox
+from constants import MonthFilter, Zakelijkheid
 
 from analysis import filter_zakelijkheid, summarize_monthly_totals_by_label
 from visualization import plot_monthly_overview
@@ -15,13 +16,17 @@ class MaandoverzichtTab(QWidget):
         filter_layout.addWidget(QLabel("Filter op zakelijkheid:"))
 
         self.zakelijkheid_combo = QComboBox()
-        self.zakelijkheid_combo.addItems(["Alle", "Zakelijk", "Niet-zakelijk"])
+        self.zakelijkheid_combo.addItems([
+            Zakelijkheid.ALL.value,
+            Zakelijkheid.BUSINESS.value,
+            Zakelijkheid.NON_BUSINESS.value
+        ])
         self.zakelijkheid_combo.currentTextChanged.connect(self.update_plot)
         filter_layout.addWidget(self.zakelijkheid_combo)
 
         filter_layout.addWidget(QLabel("Filter per maand:"))
         self.maand_combo = QComboBox()
-        self.maand_combo.addItem("Alle maanden")
+        self.maand_combo.addItem(MonthFilter.ALL.value)
         self.maand_combo.currentTextChanged.connect(self.update_plot)
         filter_layout.addWidget(self.maand_combo)
 
@@ -39,7 +44,7 @@ class MaandoverzichtTab(QWidget):
             ]:
                 self.maand_combo.addItem(maand)
 
-        if self.maand_combo.currentText() != "Alle maanden":
+        if self.maand_combo.currentText() != MonthFilter.ALL.value:
             monthly = monthly[monthly["Maand"] == self.maand_combo.currentText()]
 
         fig = plot_monthly_overview(monthly)

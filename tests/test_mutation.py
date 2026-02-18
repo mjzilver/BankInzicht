@@ -9,6 +9,7 @@ from analysis import (
     summarize_monthly_totals_by_label,
     filter_zakelijkheid,
 )
+from src.constants import Zakelijkheid
 
 from conftest import assert_no_mutation
 
@@ -102,5 +103,5 @@ def test_filter_zakelijkheid_no_mutation(summary_df, transactions_df):
     assert abs(jan["netto"].sum() - 70.0) < 1e-9
 
     # filter_zakelijkheid
-    assert_no_mutation(filter_zakelijkheid, df, "Zakelijk")
-    assert_no_mutation(filter_zakelijkheid, df, "Niet-zakelijk")
+    assert_no_mutation(filter_zakelijkheid, df, Zakelijkheid.BUSINESS.value)
+    assert_no_mutation(filter_zakelijkheid, df, Zakelijkheid.NON_BUSINESS.value)

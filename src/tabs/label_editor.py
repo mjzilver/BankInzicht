@@ -1,3 +1,4 @@
+from constants import Zakelijkheid
 from PyQt6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -32,7 +33,7 @@ class ComboBoxDelegate(QStyledItemDelegate):
         if val is None:
             val = index.model().data(index, Qt.ItemDataRole.DisplayRole)
         if isinstance(val, bool):
-            editor.setCurrentText("Zakelijk" if val else "Niet-zakelijk")
+            editor.setCurrentText(Zakelijkheid.BUSINESS.value if val else Zakelijkheid.NON_BUSINESS.value)
         else:
             editor.setCurrentText(str(val))
 
@@ -83,7 +84,7 @@ class LabelsEditorTab(QWidget):
                 {
                     "Tegenpartij": tp,
                     "Label": label,
-                    "Zakelijk": "Zakelijk" if zakelijk else "Niet-zakelijk",
+                    "Zakelijk": Zakelijkheid.BUSINESS.value if zakelijk else Zakelijkheid.NON_BUSINESS.value,
                 }
             )
 
@@ -93,7 +94,10 @@ class LabelsEditorTab(QWidget):
         self.proxy = self.model.createProxy(parent=self)
         self.table.setModel(self.proxy)
 
-        delegate = ComboBoxDelegate(["Zakelijk", "Niet-zakelijk"], parent=self.table)
+        delegate = ComboBoxDelegate([
+            Zakelijkheid.BUSINESS.value,
+            Zakelijkheid.NON_BUSINESS.value
+        ], parent=self.table)
         self.table.setItemDelegateForColumn(2, delegate)
 
         self.search_box.textChanged.connect(
@@ -134,7 +138,7 @@ class LabelsEditorTab(QWidget):
             self.app.summary_df.loc[mask, "Label"] = normalized_label
             self.app.summary_df.loc[mask, "Zakelijk"] = bool(zakelijk)
             self.app.summary_df.loc[mask, "Zakelijk_NL"] = (
-                "Zakelijk" if zakelijk else "Niet-zakelijk"
+                Zakelijkheid.BUSINESS.value if zakelijk else Zakelijkheid.NON_BUSINESS.value
             )
             changed_any = True
 

@@ -29,8 +29,8 @@ class LabelNettoTab(TableTabBase):
         label_value = self.model._df.iloc[src_row]["Label"]
 
         menu = QMenu()
-        action_tijdlijn = menu.addAction("Tijdlijn voor label")
-        action_tegenpartijen = menu.addAction("Tegenpartijen per label")
+        action_tijdlijn = menu.addAction(f"Tijdlijn voor '{label_value}'")
+        action_tegenpartijen = menu.addAction(f"Tegenpartijen voor '{label_value}'")
 
         action = menu.exec(self.table_view.viewport().mapToGlobal(position))
 
