@@ -1,10 +1,10 @@
 from PyQt6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QTableView,
-    QHeaderView,
     QHBoxLayout,
+    QHeaderView,
     QLineEdit,
+    QTableView,
+    QVBoxLayout,
+    QWidget,
 )
 
 from dataframe import DataFrameModel

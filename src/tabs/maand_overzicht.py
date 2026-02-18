@@ -1,7 +1,8 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox
+from PyQt6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QVBoxLayout, QWidget
+
+from analysis import filter_zakelijkheid, summarize_monthly_totals_by_label
 from constants import MonthFilter, Zakelijkheid
 from data_loader import DataFrameColumn
-from analysis import filter_zakelijkheid, summarize_monthly_totals_by_label
 from visualization import plot_monthly_overview
 
 

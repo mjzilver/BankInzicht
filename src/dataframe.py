@@ -1,11 +1,11 @@
+import pandas as pd
 from PyQt6.QtCore import (
-    Qt,
     QAbstractTableModel,
     QModelIndex,
-    QVariant,
     QSortFilterProxyModel,
+    Qt,
+    QVariant,
 )
-import pandas as pd
 
 
 class DataFrameModel(QAbstractTableModel):

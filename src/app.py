@@ -1,36 +1,38 @@
-import constants
-from data_loader import DataFrameColumn
 import copy
 import io
 import os
 import sys
+
 import pandas as pd
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
+from PyQt6 import QtGui
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (
     QApplication,
-    QWidget,
-    QVBoxLayout,
+    QComboBox,
+    QFileDialog,
     QHBoxLayout,
     QLabel,
-    QComboBox,
-    QTabWidget,
-    QSplitter,
-    QPushButton,
     QMenu,
+    QMessageBox,
+    QPushButton,
+    QSizePolicy,
+    QSplitter,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
 )
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QSizePolicy
-from PyQt6 import QtGui
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QFileDialog, QMessageBox
 
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
-from plot_window import PopoutPlotWindow
-
-from importer import load_initial_data, import_files
+import constants
+import settings
 from analysis import (
     summarize_monthly_totals_by_label,
 )
-import settings
+from data_loader import DataFrameColumn
+from importer import import_files, load_initial_data
+from label_db import init_db
+from plot_window import PopoutPlotWindow
 from tabs.label_chart import LabelChartTab
 from tabs.label_details import LabelDetailsViewer
 from tabs.label_editor import LabelsEditorTab
@@ -44,7 +46,6 @@ from tabs.tijdlijn_chart import TijdlijnChartTab
 from visualization import (
     plot_time_line,
 )
-from label_db import init_db
 
 
 class FinanceApp(QWidget):

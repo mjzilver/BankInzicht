@@ -1,14 +1,14 @@
 import pandas as pd
-from src.data_loader import DataFrameColumn
 
 from analysis import (
     aggregate_label_netto,
-    aggregate_tegenpartij_label_zakelijk,
     aggregate_month_netto,
+    aggregate_tegenpartij_label_zakelijk,
     aggregate_tegenpartijen_for_label,
     summarize_by_counterparty_per_month,
     summarize_monthly_totals,
 )
+from src.data_loader import DataFrameColumn
 
 
 def test_aggregate_label_and_counterparty_and_month(summary_df):

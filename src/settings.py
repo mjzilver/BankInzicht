@@ -1,6 +1,7 @@
 import os
-import tomllib
+
 import toml
+import tomllib
 
 DEFAULT_CONFIG = {
     "bank": {"ignored_account_names": []},

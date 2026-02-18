@@ -1,22 +1,21 @@
-from data_loader import DataFrameColumn
-from constants import Zakelijkheid
+import pandas as pd
+from PyQt6.QtCore import QModelIndex, Qt
 from PyQt6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QTableView,
-    QHeaderView,
+    QAbstractItemView,
     QComboBox,
     QHBoxLayout,
+    QHeaderView,
     QLineEdit,
     QStyledItemDelegate,
+    QTableView,
+    QVBoxLayout,
+    QWidget,
 )
 
-from label_db import get_labels, save_label
-from PyQt6.QtCore import Qt, QModelIndex
-from PyQt6.QtWidgets import QAbstractItemView
-import pandas as pd
-
+from constants import Zakelijkheid
+from data_loader import DataFrameColumn
 from dataframe import DataFrameModel
+from label_db import get_labels, save_label
 
 
 class ComboBoxDelegate(QStyledItemDelegate):

@@ -1,9 +1,9 @@
-from PyQt6.QtWidgets import QMenu
 from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QMenu
 
-from tabs.table_base import TableTabBase
 from analysis import aggregate_label_netto
 from data_loader import DataFrameColumn
+from tabs.table_base import TableTabBase
 
 
 class LabelNettoTab(TableTabBase):

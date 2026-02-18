@@ -1,6 +1,6 @@
-from data_loader import load_csvs, clean_transactions, filter_own_ibans
-
+from data_loader import clean_transactions, filter_own_ibans, load_csvs
 from src.data_loader import DataFrameColumn
+
 
 def test_load_csvs_concatenates(tmp_path):
     d = tmp_path

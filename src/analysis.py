@@ -1,7 +1,8 @@
-from data_loader import DataFrameColumn
 import pandas as pd
-from utils import format_month
+
 from constants import Zakelijkheid
+from data_loader import DataFrameColumn
+from utils import format_month
 
 
 def summarize_by_counterparty_per_month(df):

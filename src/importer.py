@@ -1,19 +1,20 @@
 import os
 from glob import glob
-import pandas as pd
 from typing import Tuple
-from data_loader import DataFrameColumn
+
+import pandas as pd
 
 import settings
-from data_loader import (
-    load_csvs,
-    clean_transactions,
-    merge_and_clean_labels,
-    import_and_merge,
-)
 from analysis import summarize_by_counterparty_per_month
-from utils import format_month
+from data_loader import (
+    DataFrameColumn,
+    clean_transactions,
+    import_and_merge,
+    load_csvs,
+    merge_and_clean_labels,
+)
 from label_db import get_labels
+from utils import format_month
 
 
 # Returns tuple of (transactions_df, summary_df)

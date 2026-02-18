@@ -1,8 +1,9 @@
-from data_loader import DataFrameColumn
-from matplotlib import cm
-from matplotlib.colors import to_hex
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import cm
+from matplotlib.colors import to_hex
+
+from data_loader import DataFrameColumn
 
 
 def plot_horizontal_bar(df, value_col, category_col, title="", highlight=None):

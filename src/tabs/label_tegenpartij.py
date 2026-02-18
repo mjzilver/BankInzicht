@@ -1,8 +1,8 @@
-import constants
-from data_loader import DataFrameColumn
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
+import constants
 from analysis import aggregate_tegenpartijen_for_label
+from data_loader import DataFrameColumn
 from visualization import plot_horizontal_bar
 
 

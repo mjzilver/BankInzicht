@@ -1,7 +1,8 @@
-from src.constants import Zakelijkheid
 import pandas as pd
 import pandas.testing as pdt
 import pytest
+
+from src.constants import Zakelijkheid
 
 
 @pytest.fixture

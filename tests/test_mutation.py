@@ -1,18 +1,17 @@
 import pandas.testing as pdt
-from src.data_loader import DataFrameColumn
+from conftest import assert_no_mutation
 
 from analysis import (
     aggregate_label_netto,
-    aggregate_tegenpartij_label_zakelijk,
     aggregate_month_netto,
+    aggregate_tegenpartij_label_zakelijk,
+    filter_zakelijkheid,
     summarize_by_counterparty_per_month,
     summarize_monthly_totals,
     summarize_monthly_totals_by_label,
-    filter_zakelijkheid,
 )
 from src.constants import Zakelijkheid
-
-from conftest import assert_no_mutation
+from src.data_loader import DataFrameColumn
 
 
 def test_aggregate_label_netto_no_mutation_and_conserves_sum(summary_df):

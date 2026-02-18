@@ -1,6 +1,6 @@
 from analysis import summarize_monthly_totals_by_label
-from visualization import plot_time_line
 from data_loader import DataFrameColumn
+from visualization import plot_time_line
 
 
 class LabelDetailsViewer:

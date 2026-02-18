@@ -1,5 +1,5 @@
-from tabs.table_base import TableTabBase
 from analysis import aggregate_month_netto
+from tabs.table_base import TableTabBase
 
 
 class MaandNettoTab(TableTabBase):

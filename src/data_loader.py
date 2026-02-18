@@ -1,15 +1,16 @@
-from enum import Enum
-import re
-import pandas as pd
 import os
+import re
 import shutil
+from enum import Enum
 from glob import glob
 from pathlib import Path
 from typing import List
 
-from utils import format_zakelijk
+import pandas as pd
+
 import settings
 from settings import IGNORED_ACCOUNT_NAMES
+from utils import format_zakelijk
 
 CSV_GLOB = "*.csv"
 
