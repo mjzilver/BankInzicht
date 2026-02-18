@@ -1,12 +1,13 @@
 import pandas as pd
-from PyQt6.QtCore import QModelIndex, Qt
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QAbstractItemDelegate,
     QAbstractItemView,
     QComboBox,
     QHBoxLayout,
     QHeaderView,
+    QLabel,
     QLineEdit,
+    QStackedLayout,
     QStyledItemDelegate,
     QTableView,
     QVBoxLayout,
@@ -65,7 +66,11 @@ class LabelsEditorTab(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch
         )
-        layout.addWidget(self.table)
+
+        self.stacked_layout = QStackedLayout()
+        self.stacked_layout.addWidget(self.table)
+        self.stacked_layout.setCurrentWidget(self.table)
+        layout.addLayout(self.stacked_layout)
 
         empty_df = pd.DataFrame(
             columns=[
@@ -103,45 +108,7 @@ class LabelsEditorTab(QWidget):
         v_scroll = self.table.verticalScrollBar().value() if self.table.model() else 0
         h_scroll = self.table.horizontalScrollBar().value() if self.table.model() else 0
 
-        parties = sorted(
-            self.app.summary_df[DataFrameColumn.COUNTERPARTY.value].str.strip().unique()
-        )
-        labels_df = get_labels()
-
-        rows = []
-        for tp in parties:
-            row = labels_df[labels_df[DataFrameColumn.COUNTERPARTY.value] == tp]
-            if not row.empty:
-                label = row.iloc[0][DataFrameColumn.LABEL.value]
-                zakelijk = row.iloc[0][DataFrameColumn.BUSINESS.value]
-            else:
-                label = ""
-                zakelijk = False
-            rows.append(
-                {
-                    DataFrameColumn.COUNTERPARTY.value: tp,
-                    DataFrameColumn.LABEL.value: label,
-                    DataFrameColumn.BUSINESS.value: (
-                        Zakelijkheid.BUSINESS.value
-                        if zakelijk
-                        else Zakelijkheid.NON_BUSINESS.value
-                    ),
-                }
-            )
-
-        df = pd.DataFrame(
-            rows,
-            columns=[
-                DataFrameColumn.COUNTERPARTY.value,
-                DataFrameColumn.LABEL.value,
-                DataFrameColumn.BUSINESS.value,
-            ],
-        )
-
-        self.table.closeEditor(
-            self.table.focusWidget(), QAbstractItemDelegate.EndEditHint.NoHint
-        )
-        self.model.setDataFrame(df)
+        self.update_labels_in_place()
 
         if current_search:
             self.search_box.setText(current_search)
@@ -153,9 +120,51 @@ class LabelsEditorTab(QWidget):
         self.table.verticalScrollBar().setValue(v_scroll)
         self.table.horizontalScrollBar().setValue(h_scroll)
 
-    def on_model_changed(
-        self, topLeft: QModelIndex, bottomRight: QModelIndex, roles=None
-    ):
+        self.stacked_layout.setCurrentWidget(self.table)
+
+    def update_labels_in_place(self):
+        labels_df = get_labels()
+        parties = sorted(
+            self.app.summary_df[DataFrameColumn.COUNTERPARTY.value].str.strip().unique()
+        )
+        labels_lookup = {
+            row[DataFrameColumn.COUNTERPARTY.value]: row
+            for _, row in labels_df.iterrows()
+        }
+        rows = []
+        for tp in parties:
+            if tp in labels_lookup:
+                label_row = labels_lookup[tp]
+                label = label_row[DataFrameColumn.LABEL.value]
+                zakelijk = (
+                    Zakelijkheid.BUSINESS.value
+                    if label_row[DataFrameColumn.BUSINESS.value]
+                    else Zakelijkheid.NON_BUSINESS.value
+                )
+            else:
+                label = ""
+                zakelijk = Zakelijkheid.NON_BUSINESS.value
+            rows.append(
+                {
+                    DataFrameColumn.COUNTERPARTY.value: tp,
+                    DataFrameColumn.LABEL.value: label,
+                    DataFrameColumn.BUSINESS.value: zakelijk,
+                }
+            )
+        new_df = pd.DataFrame(
+            rows,
+            columns=[
+                DataFrameColumn.COUNTERPARTY.value,
+                DataFrameColumn.LABEL.value,
+                DataFrameColumn.BUSINESS.value,
+            ],
+        )
+        current_df = self.model.getDataFrame()
+
+        if not current_df.equals(new_df):
+            self.model.setDataFrame(new_df)
+
+    def on_model_changed(self, topLeft, bottomRight, roles=None):
         df = self.model.getDataFrame()
 
         start = topLeft.row()
