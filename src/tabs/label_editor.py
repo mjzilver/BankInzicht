@@ -70,6 +70,13 @@ class LabelsEditorTab(QWidget):
         self.proxy = None
 
     def populate(self):
+        current_search = self.search_box.text()
+        header = self.table.horizontalHeader()
+        sort_col = header.sortIndicatorSection() if header.isSortIndicatorShown() else -1
+        sort_order = header.sortIndicatorOrder() if header.isSortIndicatorShown() else None
+        v_scroll = self.table.verticalScrollBar().value() if self.table.model() else 0
+        h_scroll = self.table.horizontalScrollBar().value() if self.table.model() else 0
+
         parties = sorted(
             self.app.summary_df[DataFrameColumn.COUNTERPARTY.value].str.strip().unique()
         )
@@ -120,6 +127,16 @@ class LabelsEditorTab(QWidget):
         )
 
         self.model.dataChanged.connect(self.on_model_changed)
+
+        if current_search:
+            self.search_box.setText(current_search)
+            self.proxy.setFilterWildcard(f"*{current_search}*")
+
+        if sort_col >= 0 and sort_order is not None:
+            self.table.sortByColumn(sort_col, sort_order)
+
+        self.table.verticalScrollBar().setValue(v_scroll)
+        self.table.horizontalScrollBar().setValue(h_scroll)
 
     def on_model_changed(
         self, topLeft: QModelIndex, bottomRight: QModelIndex, roles=None
