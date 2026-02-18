@@ -65,7 +65,7 @@ class FinanceApp(QWidget):
 
         splitter = QSplitter(Qt.Orientation.Vertical)
 
-        # --- Maand filter ---
+        # Maand filter
         top_controls = QHBoxLayout()
         top_controls.addWidget(QLabel("Filter op maand:"))
 
@@ -90,14 +90,14 @@ class FinanceApp(QWidget):
         self.month_combo.currentTextChanged.connect(self.on_month_changed)
         top_controls.addWidget(self.month_combo)
 
-        # --- Thema button ---
+        # Thema button
         self.theme_button = QPushButton(
             "Dark mode" if settings.UI_THEME == "light" else "Light mode"
         )
         self.theme_button.clicked.connect(self.toggle_theme)
         top_controls.addWidget(self.theme_button)
 
-        # --- Import button ---
+        # Import button
         self.import_button = QPushButton("Importeer bestanden")
         self.import_button.clicked.connect(self.on_import_button_clicked)
         top_controls.addWidget(self.import_button)

@@ -1,6 +1,7 @@
 import pandas as pd
 from PyQt6.QtCore import QModelIndex, Qt
 from PyQt6.QtWidgets import (
+    QAbstractItemDelegate,
     QAbstractItemView,
     QComboBox,
     QHBoxLayout,
@@ -66,14 +67,39 @@ class LabelsEditorTab(QWidget):
         )
         layout.addWidget(self.table)
 
-        self.model = None
-        self.proxy = None
+        empty_df = pd.DataFrame(
+            columns=[
+                DataFrameColumn.COUNTERPARTY.value,
+                DataFrameColumn.LABEL.value,
+                DataFrameColumn.BUSINESS.value,
+            ]
+        )
+        self.model = DataFrameModel(empty_df, parent=self, editable=True)
+        self.proxy = self.model.createProxy(parent=self)
+        self.table.setModel(self.proxy)
+
+        delegate = ComboBoxDelegate(
+            [Zakelijkheid.BUSINESS.value, Zakelijkheid.NON_BUSINESS.value],
+            parent=self.table,
+        )
+        self.table.setItemDelegateForColumn(2, delegate)
+
+        self.search_box.textChanged.connect(self._on_search_text_changed)
+        self.model.dataChanged.connect(self.on_model_changed)
+
+    def _on_search_text_changed(self, t):
+        if self.proxy:
+            self.proxy.setFilterWildcard(f"*{t}*")
 
     def populate(self):
         current_search = self.search_box.text()
         header = self.table.horizontalHeader()
-        sort_col = header.sortIndicatorSection() if header.isSortIndicatorShown() else -1
-        sort_order = header.sortIndicatorOrder() if header.isSortIndicatorShown() else None
+        sort_col = (
+            header.sortIndicatorSection() if header.isSortIndicatorShown() else -1
+        )
+        sort_order = (
+            header.sortIndicatorOrder() if header.isSortIndicatorShown() else None
+        )
         v_scroll = self.table.verticalScrollBar().value() if self.table.model() else 0
         h_scroll = self.table.horizontalScrollBar().value() if self.table.model() else 0
 
@@ -112,21 +138,10 @@ class LabelsEditorTab(QWidget):
             ],
         )
 
-        self.model = DataFrameModel(df, parent=self, editable=True)
-        self.proxy = self.model.createProxy(parent=self)
-        self.table.setModel(self.proxy)
-
-        delegate = ComboBoxDelegate(
-            [Zakelijkheid.BUSINESS.value, Zakelijkheid.NON_BUSINESS.value],
-            parent=self.table,
+        self.table.closeEditor(
+            self.table.focusWidget(), QAbstractItemDelegate.EndEditHint.NoHint
         )
-        self.table.setItemDelegateForColumn(2, delegate)
-
-        self.search_box.textChanged.connect(
-            lambda t: self.proxy.setFilterWildcard(f"*{t}*")
-        )
-
-        self.model.dataChanged.connect(self.on_model_changed)
+        self.model.setDataFrame(df)
 
         if current_search:
             self.search_box.setText(current_search)
