@@ -1,3 +1,5 @@
+import constants
+from data_loader import DataFrameColumn
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
 from analysis import aggregate_tegenpartijen_for_label
@@ -23,7 +25,7 @@ class LabelTegenpartijTab(QWidget):
         filtered_summary_df, selected_month = self.app.get_filtered_by_selected_month()
         target_df = (
             self.app.summary_df
-            if selected_month == "Alle maanden"
+            if selected_month == constants.MonthFilter.ALL.value
             else filtered_summary_df
         )
 
@@ -32,14 +34,14 @@ class LabelTegenpartijTab(QWidget):
         )
 
         title = f"Tegenpartijen voor label: {label_value}"
-        if selected_month != "Alle maanden":
+        if selected_month != constants.MonthFilter.ALL.value:
             title += f" ({selected_month})"
         title += f"\nTotaal: {total:.2f}€ - Aantal: {count}"
 
         fig = plot_horizontal_bar(
             tegenpartij_summary,
-            value_col="Netto",
-            category_col="Tegenpartij",
+            value_col=DataFrameColumn.NETTO.value,
+            category_col=DataFrameColumn.COUNTERPARTY.value,
             title=title,
         )
 

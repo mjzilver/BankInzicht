@@ -1,3 +1,4 @@
+from data_loader import DataFrameColumn
 from matplotlib import cm
 from matplotlib.colors import to_hex
 import matplotlib.pyplot as plt
@@ -53,51 +54,55 @@ def plot_horizontal_bar(df, value_col, category_col, title="", highlight=None):
     return fig
 
 
-def plot_counterparty_netto(filtered_df, highlight=None):
+def plot_counterparty_netto(filtered_df, selected_month, highlight=None):
     return plot_horizontal_bar(
         filtered_df,
-        value_col="Netto",
-        category_col="Tegenpartij",
-        title="Netto per Tegenpartij",
+        value_col=DataFrameColumn.NETTO.value,
+        category_col=DataFrameColumn.COUNTERPARTY.value,
+        title=f"Netto per Tegenpartij - {selected_month}",
         highlight=highlight,
     )
 
 
-def plot_label_netto(filtered_df, highlight=None):
+def plot_label_netto(filtered_df, selected_month, highlight=None):
     df = filtered_df.copy()
-    df["Label"] = df["Label"].replace("", "geen label")
+    df[DataFrameColumn.LABEL.value] = df[DataFrameColumn.LABEL.value].replace(
+        "", "geen label"
+    )
 
     grouped = (
-        df.groupby("Label")
+        df.groupby(DataFrameColumn.LABEL.value)
         .agg(
-            Netto=("Netto", "sum"),
-            Positief=("Netto", lambda x: (x > 0).sum()),
-            Negatief=("Netto", lambda x: (x < 0).sum()),
-            Aantal=("Tegenpartij", "count"),
+            Netto=(DataFrameColumn.NETTO.value, "sum"),
+            Positief=(DataFrameColumn.NETTO.value, lambda x: (x > 0).sum()),
+            Negatief=(DataFrameColumn.NETTO.value, lambda x: (x < 0).sum()),
+            Aantal=(DataFrameColumn.COUNTERPARTY.value, "count"),
         )
         .reset_index()
     )
 
     return plot_horizontal_bar(
         grouped,
-        value_col="Netto",
-        category_col="Label",
-        title="Netto per Label",
+        value_col=DataFrameColumn.NETTO.value,
+        category_col=DataFrameColumn.LABEL.value,
+        title=f"Netto per Label - {selected_month}",
         highlight=highlight,
     )
 
 
 def plot_time_line(df, title):
     fig, ax = plt.subplots()
-    if (df["inkomsten"] != 0).any():
-        line = ax.plot(
-            df["Maand_NL"],
-            df["inkomsten"],
+    if (df[DataFrameColumn.INCOME.value] != 0).any():
+        _ = ax.plot(
+            df[DataFrameColumn.MONTH_NL.value],
+            df[DataFrameColumn.INCOME.value],
             label="Inkomsten",
             color="green",
             marker="o",
         )
-        for i, (x, y) in enumerate(zip(df["Maand_NL"], df["inkomsten"])):
+        for i, (x, y) in enumerate(
+            zip(df[DataFrameColumn.MONTH_NL.value], df[DataFrameColumn.INCOME.value])
+        ):
             ax.annotate(
                 f"{y:,.2f}€",
                 xy=(x, y),
@@ -108,15 +113,17 @@ def plot_time_line(df, title):
                 color="black",
             )
 
-    if (df["uitgaven"] != 0).any():
+    if (df[DataFrameColumn.EXPENSE.value] != 0).any():
         ax.plot(
-            df["Maand_NL"],
-            df["uitgaven"],
+            df[DataFrameColumn.MONTH_NL.value],
+            df[DataFrameColumn.EXPENSE.value],
             label="Uitgaven",
             color="red",
             marker="o",
         )
-        for i, (x, y) in enumerate(zip(df["Maand_NL"], df["uitgaven"])):
+        for i, (x, y) in enumerate(
+            zip(df[DataFrameColumn.MONTH_NL.value], df[DataFrameColumn.EXPENSE.value])
+        ):
             ax.annotate(
                 f"{y:,.2f}€",
                 xy=(x, y),
@@ -142,10 +149,12 @@ def plot_time_line(df, title):
 def plot_monthly_overview(df):
     fig, ax = plt.subplots(figsize=(12, 5))
 
-    df["Label"] = df["Label"].replace("", "geen label")
+    df[DataFrameColumn.LABEL.value] = df[DataFrameColumn.LABEL.value].replace(
+        "", "geen label"
+    )
 
-    months = df["Maand_NL"].unique()
-    labels = df["Label"].unique()
+    months = df[DataFrameColumn.MONTH_NL.value].unique()
+    labels = df[DataFrameColumn.LABEL.value].unique()
 
     x = np.arange(len(months))
     width = 0.8
@@ -157,11 +166,13 @@ def plot_monthly_overview(df):
     expense_bottom = np.zeros(len(months))
 
     for label in labels:
-        subset = df[df["Label"] == label]
-        subset = subset.set_index("Maand_NL").reindex(months, fill_value=0)
+        subset = df[df[DataFrameColumn.LABEL.value] == label]
+        subset = subset.set_index(DataFrameColumn.MONTH_NL.value).reindex(
+            months, fill_value=0
+        )
 
-        inkomsten = subset["inkomsten"].values
-        uitgaven = subset["uitgaven"].abs().values
+        inkomsten = subset[DataFrameColumn.INCOME.value].values
+        uitgaven = subset[DataFrameColumn.EXPENSE.value].abs().values
 
         ax.bar(
             x,

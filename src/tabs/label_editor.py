@@ -1,3 +1,4 @@
+from data_loader import DataFrameColumn
 from constants import Zakelijkheid
 from PyQt6.QtWidgets import (
     QWidget,
@@ -33,7 +34,9 @@ class ComboBoxDelegate(QStyledItemDelegate):
         if val is None:
             val = index.model().data(index, Qt.ItemDataRole.DisplayRole)
         if isinstance(val, bool):
-            editor.setCurrentText(Zakelijkheid.BUSINESS.value if val else Zakelijkheid.NON_BUSINESS.value)
+            editor.setCurrentText(
+                Zakelijkheid.BUSINESS.value if val else Zakelijkheid.NON_BUSINESS.value
+            )
         else:
             editor.setCurrentText(str(val))
 
@@ -68,36 +71,49 @@ class LabelsEditorTab(QWidget):
         self.proxy = None
 
     def populate(self):
-        parties = sorted(self.app.summary_df["Tegenpartij"].str.strip().unique())
+        parties = sorted(
+            self.app.summary_df[DataFrameColumn.COUNTERPARTY.value].str.strip().unique()
+        )
         labels_df = get_labels()
 
         rows = []
         for tp in parties:
-            row = labels_df[labels_df["Tegenpartij"] == tp]
+            row = labels_df[labels_df[DataFrameColumn.COUNTERPARTY.value] == tp]
             if not row.empty:
-                label = row.iloc[0]["Label"]
-                zakelijk = row.iloc[0]["Zakelijk"]
+                label = row.iloc[0][DataFrameColumn.LABEL.value]
+                zakelijk = row.iloc[0][DataFrameColumn.BUSINESS.value]
             else:
                 label = ""
                 zakelijk = False
             rows.append(
                 {
-                    "Tegenpartij": tp,
-                    "Label": label,
-                    "Zakelijk": Zakelijkheid.BUSINESS.value if zakelijk else Zakelijkheid.NON_BUSINESS.value,
+                    DataFrameColumn.COUNTERPARTY.value: tp,
+                    DataFrameColumn.LABEL.value: label,
+                    DataFrameColumn.BUSINESS.value: (
+                        Zakelijkheid.BUSINESS.value
+                        if zakelijk
+                        else Zakelijkheid.NON_BUSINESS.value
+                    ),
                 }
             )
 
-        df = pd.DataFrame(rows, columns=["Tegenpartij", "Label", "Zakelijk"])
+        df = pd.DataFrame(
+            rows,
+            columns=[
+                DataFrameColumn.COUNTERPARTY.value,
+                DataFrameColumn.LABEL.value,
+                DataFrameColumn.BUSINESS.value,
+            ],
+        )
 
         self.model = DataFrameModel(df, parent=self, editable=True)
         self.proxy = self.model.createProxy(parent=self)
         self.table.setModel(self.proxy)
 
-        delegate = ComboBoxDelegate([
-            Zakelijkheid.BUSINESS.value,
-            Zakelijkheid.NON_BUSINESS.value
-        ], parent=self.table)
+        delegate = ComboBoxDelegate(
+            [Zakelijkheid.BUSINESS.value, Zakelijkheid.NON_BUSINESS.value],
+            parent=self.table,
+        )
         self.table.setItemDelegateForColumn(2, delegate)
 
         self.search_box.textChanged.connect(
@@ -115,15 +131,21 @@ class LabelsEditorTab(QWidget):
         end = bottomRight.row()
         changed_any = False
         for r in range(start, end + 1):
-            tp = df.iloc[r]["Tegenpartij"]
-            label = df.iloc[r]["Label"]
-            zak_text = df.iloc[r]["Zakelijk"]
-            zakelijk = True if str(zak_text).lower().startswith("z") else False
+            tp = df.iloc[r][DataFrameColumn.COUNTERPARTY.value]
+            label = df.iloc[r][DataFrameColumn.LABEL.value]
+            zak_text = df.iloc[r][DataFrameColumn.BUSINESS.value]
+            zakelijk = True if zak_text == Zakelijkheid.BUSINESS.value else False
 
-            mask = self.app.summary_df["Tegenpartij"] == tp
+            mask = self.app.summary_df[DataFrameColumn.COUNTERPARTY.value] == tp
             if mask.any():
-                current_label = self.app.summary_df.loc[mask, "Label"].iloc[0]
-                current_zak = bool(self.app.summary_df.loc[mask, "Zakelijk"].iloc[0])
+                current_label = self.app.summary_df.loc[
+                    mask, DataFrameColumn.LABEL.value
+                ].iloc[0]
+                current_zak = bool(
+                    self.app.summary_df.loc[mask, DataFrameColumn.BUSINESS.value].iloc[
+                        0
+                    ]
+                )
             else:
                 current_label = None
                 current_zak = None
@@ -135,10 +157,16 @@ class LabelsEditorTab(QWidget):
                 continue
 
             save_label(tp, label, zakelijk)
-            self.app.summary_df.loc[mask, "Label"] = normalized_label
-            self.app.summary_df.loc[mask, "Zakelijk"] = bool(zakelijk)
-            self.app.summary_df.loc[mask, "Zakelijk_NL"] = (
-                Zakelijkheid.BUSINESS.value if zakelijk else Zakelijkheid.NON_BUSINESS.value
+            self.app.summary_df.loc[mask, DataFrameColumn.LABEL.value] = (
+                normalized_label
+            )
+            self.app.summary_df.loc[mask, DataFrameColumn.BUSINESS.value] = bool(
+                zakelijk
+            )
+            self.app.summary_df.loc[mask, DataFrameColumn.BUSINESS_NL.value] = (
+                Zakelijkheid.BUSINESS.value
+                if zakelijk
+                else Zakelijkheid.NON_BUSINESS.value
             )
             changed_any = True
 

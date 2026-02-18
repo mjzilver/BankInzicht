@@ -1,5 +1,6 @@
 from data_loader import load_csvs, clean_transactions, filter_own_ibans
 
+from src.data_loader import DataFrameColumn
 
 def test_load_csvs_concatenates(tmp_path):
     d = tmp_path
@@ -21,8 +22,9 @@ def test_clean_transactions_ing_parses_amounts_and_dates(raw_transactions_ing):
     df = raw_transactions_ing
 
     cleaned = clean_transactions(df)
-    assert "Maand" in cleaned.columns
-    assert cleaned["Bedrag"].dtype.kind in "fi"
+
+    assert DataFrameColumn.MONTH.value in cleaned.columns
+    assert cleaned[DataFrameColumn.AMOUNT.value].dtype.kind in "fi"
 
 
 def test_filter_own_ibans(own_ibans_df):

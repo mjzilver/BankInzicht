@@ -13,7 +13,12 @@ def summary_df():
             "Tegenpartij": ["A", "A", "B", "C"],
             "Label": ["L1", "L1", "L2", ""],
             "Zakelijk": [True, True, False, False],
-            "Zakelijk_NL": [Zakelijkheid.BUSINESS.value, Zakelijkheid.BUSINESS.value, Zakelijkheid.NON_BUSINESS.value, Zakelijkheid.NON_BUSINESS.value],
+            "Zakelijk_NL": [
+                Zakelijkheid.BUSINESS.value,
+                Zakelijkheid.BUSINESS.value,
+                Zakelijkheid.NON_BUSINESS.value,
+                Zakelijkheid.NON_BUSINESS.value,
+            ],
             "Netto": [100.0, -30.0, 50.0, -20.0],
         }
     )

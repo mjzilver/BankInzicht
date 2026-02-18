@@ -4,6 +4,8 @@ from PyQt6.QtCore import Qt
 from tabs.table_base import TableTabBase
 from analysis import aggregate_tegenpartij_label_zakelijk
 
+from data_loader import DataFrameColumn
+
 
 class TegenpartijNettoTab(TableTabBase):
     def __init__(self, app):
@@ -27,7 +29,7 @@ class TegenpartijNettoTab(TableTabBase):
             return
 
         src_row = self.get_selected_source_row(index)
-        tegenpartij = self.model._df.iloc[src_row]["Tegenpartij"]
+        tegenpartij = self.model._df.iloc[src_row][DataFrameColumn.COUNTERPARTY.value]
 
         menu = QMenu()
         action_tijdlijn = menu.addAction(f"Tijdlijn voor '{tegenpartij}'")

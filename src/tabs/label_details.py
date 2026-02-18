@@ -1,5 +1,6 @@
 from analysis import summarize_monthly_totals_by_label
 from visualization import plot_time_line
+from data_loader import DataFrameColumn
 
 
 class LabelDetailsViewer:
@@ -8,10 +9,10 @@ class LabelDetailsViewer:
 
     def show_tijdlijn_for_label(self, label_value):
         filtered_df = self.app.summary_df[
-            self.app.summary_df["Label"] == label_value
+            self.app.summary_df[DataFrameColumn.LABEL.value] == label_value
         ].copy()
         monthly = summarize_monthly_totals_by_label(filtered_df)
-        avg = filtered_df["Netto"].mean()
+        avg = filtered_df[DataFrameColumn.NETTO.value].mean()
         fig = plot_time_line(
             monthly,
             title=f"Tijdlijn voor: {label_value} - Gemiddeld: {avg:.2f} per maand",

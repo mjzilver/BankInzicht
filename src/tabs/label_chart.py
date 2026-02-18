@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
+import constants
 from visualization import plot_label_netto
 
 
@@ -15,7 +16,7 @@ class LabelChartTab(QWidget):
         layout.addWidget(self.info_label)
 
     def update_plot(self, df, selected_month):
-        if selected_month == "Alle maanden":
+        if selected_month == constants.MonthFilter.ALL.value:
             self.app.set_canvas(
                 self,
                 None,
@@ -23,7 +24,7 @@ class LabelChartTab(QWidget):
                 "Selecteer een specifieke maand om de grafiek te zien.",
             )
             return
-        fig = plot_label_netto(df)
+        fig = plot_label_netto(df, selected_month)
         self.app.set_canvas(self, fig, self.info_label)
 
     def label_detail_context_menu(self, position):

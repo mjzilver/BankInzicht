@@ -3,6 +3,7 @@ from PyQt6.QtCore import Qt
 
 from tabs.table_base import TableTabBase
 from analysis import aggregate_label_netto
+from data_loader import DataFrameColumn
 
 
 class LabelNettoTab(TableTabBase):
@@ -26,7 +27,7 @@ class LabelNettoTab(TableTabBase):
             return
 
         src_row = self.get_selected_source_row(index)
-        label_value = self.model._df.iloc[src_row]["Label"]
+        label_value = self.model._df.iloc[src_row][DataFrameColumn.LABEL.value]
 
         menu = QMenu()
         action_tijdlijn = menu.addAction(f"Tijdlijn voor '{label_value}'")

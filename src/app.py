@@ -1,3 +1,5 @@
+import constants
+from data_loader import DataFrameColumn
 import copy
 import io
 import os
@@ -68,18 +70,21 @@ class FinanceApp(QWidget):
 
         self.month_combo = QComboBox()
 
-        if not self.summary_df.empty and {"Maand", "Maand_NL"}.issubset(
-            set(self.summary_df.columns)
-        ):
-            months = self.summary_df.drop_duplicates("Maand")[
-                ["Maand", "Maand_NL"]
-            ].sort_values("Maand")
+        if not self.summary_df.empty and {
+            DataFrameColumn.MONTH.value,
+            DataFrameColumn.MONTH_NL.value,
+        }.issubset(set(self.summary_df.columns)):
+            months = self.summary_df.drop_duplicates(DataFrameColumn.MONTH.value)[
+                [DataFrameColumn.MONTH.value, DataFrameColumn.MONTH_NL.value]
+            ].sort_values(DataFrameColumn.MONTH.value)
         else:
-            months = pd.DataFrame(columns=["Maand", "Maand_NL"])
+            months = pd.DataFrame(
+                columns=[DataFrameColumn.MONTH.value, DataFrameColumn.MONTH_NL.value]
+            )
 
         self.months_df = months
-        self.month_combo.addItem("Alle maanden")
-        for m in months["Maand_NL"]:
+        self.month_combo.addItem(constants.MonthFilter.ALL.value)
+        for m in months[DataFrameColumn.MONTH_NL.value]:
             self.month_combo.addItem(m)
         self.month_combo.currentTextChanged.connect(self.on_month_changed)
         top_controls.addWidget(self.month_combo)
@@ -160,19 +165,22 @@ class FinanceApp(QWidget):
 
     def get_filtered_by_selected_month(self):
         selected = self.month_combo.currentText()
-        if selected == "Alle maanden":
+        if selected == constants.MonthFilter.ALL.value:
             return self.summary_df, selected
-        maand_val = self.months_df[self.months_df["Maand_NL"] == selected][
-            "Maand"
-        ].iloc[0]
-        return self.summary_df[self.summary_df["Maand"] == maand_val], selected
+        maand_val = self.months_df[
+            self.months_df[DataFrameColumn.MONTH_NL.value] == selected
+        ][DataFrameColumn.MONTH.value].iloc[0]
+        return (
+            self.summary_df[self.summary_df[DataFrameColumn.MONTH.value] == maand_val],
+            selected,
+        )
 
     def on_month_changed(self, _):
         self.update_all_views()
 
     def update_all_views(self):
         filtered_df, selected_month = self.get_filtered_by_selected_month()
-        isAlleSelected = selected_month == "Alle maanden"
+        isAlleSelected = selected_month == constants.MonthFilter.ALL.value
 
         # Update tables
         self.tegenpartij_netto_tab.update(filtered_df)
@@ -263,7 +271,8 @@ class FinanceApp(QWidget):
         value = source_model._df.iloc[source_index.row()][index_name]
         filtered_df = self.summary_df[self.summary_df[index_name] == value].copy()
         monthly = summarize_monthly_totals_by_label(filtered_df)
-        avg = filtered_df["Netto"].mean()
+
+        avg = filtered_df[DataFrameColumn.NETTO.value].mean()
         fig = plot_time_line(
             monthly, title=f"Tijdlijn voor: {value} - Gemiddeld: {avg:.2f} per maand"
         )

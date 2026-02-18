@@ -1,3 +1,4 @@
+from enum import Enum
 import re
 import pandas as pd
 import os
@@ -12,22 +13,23 @@ from settings import IGNORED_ACCOUNT_NAMES
 
 CSV_GLOB = "*.csv"
 
-COMMON_COLS = {
-    "date": "date",
-    "amount": "Bedrag",
-    "counterparty": "Tegenpartij",
-    "counterparty_iban": "iban tegenpartij",
-    "iban": "iban",
-    "month": "Maand",
-    "month_nl": "Maand_NL",
-    "label": "Label",
-    "business": "Zakelijk",
-    "not_business": "Niet-zakelijk",
-    "business_nl": "Zakelijk_NL",
-    "net_amount": "Netto",
-    "income": "Inkomsten",
-    "expense": "Uitgaven",
-}
+
+class DataFrameColumn(str, Enum):
+    DATE = "date"
+    AMOUNT = "Bedrag"
+    COUNTERPARTY = "Tegenpartij"
+    COUNTERPARTY_IBAN = "iban tegenpartij"
+    IBAN = "iban"
+    MONTH = "Maand"
+    MONTH_NL = "Maand_NL"
+    LABEL = "Label"
+    BUSINESS = "Zakelijk"
+    NOT_BUSINESS = "Niet-zakelijk"
+    BUSINESS_NL = "Zakelijk_NL"
+    INCOME = "Inkomsten"
+    EXPENSE = "Uitgaven"
+    NETTO = "Netto"
+
 
 BANK_CONFIGS = {
     "ING": {
@@ -40,11 +42,11 @@ BANK_CONFIGS = {
             "Account",
         },
         "rename_map": {
-            "Date": COMMON_COLS["date"],
-            "Amount (EUR)": COMMON_COLS["amount"],
-            "Name / Description": COMMON_COLS["counterparty"],
-            "Counterparty": COMMON_COLS["counterparty_iban"],
-            "Account": COMMON_COLS["iban"],
+            "Date": DataFrameColumn.DATE.value,
+            "Amount (EUR)": DataFrameColumn.AMOUNT.value,
+            "Name / Description": DataFrameColumn.COUNTERPARTY.value,
+            "Counterparty": DataFrameColumn.COUNTERPARTY_IBAN.value,
+            "Account": DataFrameColumn.IBAN.value,
             "Debit/credit": "debit_credit",
         },
         "date_format": "%Y%m%d",
@@ -59,11 +61,11 @@ BANK_CONFIGS = {
             "IBAN/BBAN",
         },
         "rename_map": {
-            "Datum": COMMON_COLS["date"],
-            "Bedrag": COMMON_COLS["amount"],
-            "Naam tegenpartij": COMMON_COLS["counterparty"],
-            "Tegenrekening IBAN/BBAN": COMMON_COLS["counterparty_iban"],
-            "IBAN/BBAN": COMMON_COLS["iban"],
+            "Datum": DataFrameColumn.DATE.value,
+            "Bedrag": DataFrameColumn.AMOUNT.value,
+            "Naam tegenpartij": DataFrameColumn.COUNTERPARTY.value,
+            "Tegenrekening IBAN/BBAN": DataFrameColumn.COUNTERPARTY_IBAN.value,
+            "IBAN/BBAN": DataFrameColumn.IBAN.value,
         },
         "date_format": None,
         "amount_processor": None,
@@ -145,7 +147,11 @@ def import_and_merge(existing_df, file_paths, copy_files=True):
     cleaned = pd.concat(cleaned_frames, ignore_index=True)
 
     cleaned = cleaned.drop_duplicates(
-        subset=[COMMON_COLS["date"], COMMON_COLS["amount"], COMMON_COLS["counterparty"]]
+        subset=[
+            DataFrameColumn.DATE.value,
+            DataFrameColumn.AMOUNT.value,
+            DataFrameColumn.COUNTERPARTY.value,
+        ]
     )
 
     if existing_df is None or existing_df.empty:
@@ -153,7 +159,11 @@ def import_and_merge(existing_df, file_paths, copy_files=True):
 
     merged = pd.concat([existing_df, cleaned], ignore_index=True)
     return merged.drop_duplicates(
-        subset=[COMMON_COLS["date"], COMMON_COLS["amount"], COMMON_COLS["counterparty"]]
+        subset=[
+            DataFrameColumn.DATE.value,
+            DataFrameColumn.AMOUNT.value,
+            DataFrameColumn.COUNTERPARTY.value,
+        ]
     )
 
 
@@ -166,29 +176,33 @@ def detect_bank_format(df):
 
 
 def ing_amount_processor(df):
-    df[COMMON_COLS["amount"]] = (
-        df[COMMON_COLS["amount"]].str.replace(",", ".").astype(float, errors="ignore")
+    df[DataFrameColumn.AMOUNT.value] = (
+        df[DataFrameColumn.AMOUNT.value]
+        .str.replace(",", ".")
+        .astype(float, errors="ignore")
     )
     debit = df["debit_credit"].str.strip().str.lower() == "debit"
-    df.loc[debit, COMMON_COLS["amount"]] *= -1
+    df.loc[debit, DataFrameColumn.AMOUNT.value] *= -1
     df.drop(columns=["debit_credit"], inplace=True)
     return df
 
 
 def default_amount_processor(df):
-    df[COMMON_COLS["amount"]] = (
-        df[COMMON_COLS["amount"]].str.replace(",", ".").astype(float, errors="ignore")
+    df[DataFrameColumn.AMOUNT.value] = (
+        df[DataFrameColumn.AMOUNT.value]
+        .str.replace(",", ".")
+        .astype(float, errors="ignore")
     )
     return df
 
 
 def filter_own_ibans(df):
     if (
-        COMMON_COLS["iban"] in df.columns
-        and COMMON_COLS["counterparty_iban"] in df.columns
+        DataFrameColumn.IBAN.value in df.columns
+        and DataFrameColumn.COUNTERPARTY_IBAN.value in df.columns
     ):
-        own_ibans = df[COMMON_COLS["iban"]].dropna().unique()
-        df = df[~df[COMMON_COLS["counterparty_iban"]].isin(own_ibans)]
+        own_ibans = df[DataFrameColumn.IBAN.value].dropna().unique()
+        df = df[~df[DataFrameColumn.COUNTERPARTY_IBAN.value].isin(own_ibans)]
     return df
 
 
@@ -211,12 +225,12 @@ def clean_transactions(df):
     df = df.rename(columns=cfg["rename_map"])
 
     if cfg["date_format"]:
-        df[COMMON_COLS["date"]] = pd.to_datetime(
-            df[COMMON_COLS["date"]], format=cfg["date_format"], errors="coerce"
+        df[DataFrameColumn.DATE.value] = pd.to_datetime(
+            df[DataFrameColumn.DATE.value], format=cfg["date_format"], errors="coerce"
         )
     else:
-        df[COMMON_COLS["date"]] = pd.to_datetime(
-            df[COMMON_COLS["date"]], errors="coerce"
+        df[DataFrameColumn.DATE.value] = pd.to_datetime(
+            df[DataFrameColumn.DATE.value], errors="coerce"
         )
 
     if cfg["amount_processor"]:
@@ -224,24 +238,34 @@ def clean_transactions(df):
     else:
         df = default_amount_processor(df)
 
-    df[COMMON_COLS["counterparty"]] = df[COMMON_COLS["counterparty"]].fillna("Onbekend")
+    df[DataFrameColumn.COUNTERPARTY.value] = df[
+        DataFrameColumn.COUNTERPARTY.value
+    ].fillna("Onbekend")
 
-    df = df.dropna(subset=[COMMON_COLS["date"], COMMON_COLS["amount"]])
+    df = df.dropna(subset=[DataFrameColumn.DATE.value, DataFrameColumn.AMOUNT.value])
     df = filter_own_ibans(df)
-    df = shared_cleaning(df, COMMON_COLS["counterparty"])
+    df = shared_cleaning(df, DataFrameColumn.COUNTERPARTY.value)
 
-    df[COMMON_COLS["month"]] = df[COMMON_COLS["date"]].dt.to_period("M")
+    df[DataFrameColumn.MONTH.value] = df[DataFrameColumn.DATE.value].dt.to_period("M")
 
     return df.drop_duplicates(
-        subset=[COMMON_COLS["date"], COMMON_COLS["amount"], COMMON_COLS["counterparty"]]
+        subset=[
+            DataFrameColumn.DATE.value,
+            DataFrameColumn.AMOUNT.value,
+            DataFrameColumn.COUNTERPARTY.value,
+        ]
     )
 
 
 def merge_and_clean_labels(summary_df, label_df):
-    df = summary_df.merge(label_df, on=COMMON_COLS["counterparty"], how="left")
-    df[COMMON_COLS["label"]] = (
-        df[COMMON_COLS["label"]].fillna("").str.strip().replace("", "geen label")
+    df = summary_df.merge(label_df, on=DataFrameColumn.COUNTERPARTY.value, how="left")
+    df[DataFrameColumn.LABEL.value] = (
+        df[DataFrameColumn.LABEL.value].fillna("").str.strip().replace("", "geen label")
     )
-    df[COMMON_COLS["business"]] = df[COMMON_COLS["business"]].fillna(False).astype(bool)
-    df[COMMON_COLS["business_nl"]] = df[COMMON_COLS["business"]].apply(format_zakelijk)
+    df[DataFrameColumn.BUSINESS.value] = (
+        df[DataFrameColumn.BUSINESS.value].fillna(False).astype(bool)
+    )
+    df[DataFrameColumn.BUSINESS_NL.value] = df[DataFrameColumn.BUSINESS.value].apply(
+        format_zakelijk
+    )
     return df

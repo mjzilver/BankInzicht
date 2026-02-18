@@ -2,6 +2,7 @@ import os
 from glob import glob
 import pandas as pd
 from typing import Tuple
+from data_loader import DataFrameColumn
 
 import settings
 from data_loader import (
@@ -35,9 +36,12 @@ def load_initial_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
     summary_df = pd.DataFrame()
     if not df.empty:
         summary_df = summarize_by_counterparty_per_month(df)
-        summary_df["Maand_NL"] = summary_df["Maand"].apply(format_month)
+        summary_df[DataFrameColumn.MONTH_NL.value] = summary_df[
+            DataFrameColumn.MONTH.value
+        ].apply(format_month)
         summary_df = summary_df.sort_values(
-            by=["Maand", "Netto"], ascending=[True, False]
+            by=[DataFrameColumn.MONTH.value, DataFrameColumn.NETTO.value],
+            ascending=[True, False],
         )
         summary_df = merge_and_clean_labels(summary_df, get_labels())
 
@@ -57,7 +61,9 @@ def import_files(
     summary_df = pd.DataFrame()
     if not df.empty:
         summary_df = summarize_by_counterparty_per_month(df)
-        summary_df["Maand_NL"] = summary_df["Maand"].apply(format_month)
+        summary_df[DataFrameColumn.MONTH_NL.value] = summary_df[
+            DataFrameColumn.MONTH.value
+        ].apply(format_month)
         summary_df = merge_and_clean_labels(summary_df, get_labels())
 
     return df, summary_df
