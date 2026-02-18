@@ -1,5 +1,5 @@
 from analysis import summarize_monthly_totals_by_label
-from visualization import plot_horizontal_bar, plot_time_line
+from visualization import plot_time_line
 
 
 class LabelDetailsViewer:

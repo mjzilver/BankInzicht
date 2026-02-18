@@ -1,5 +1,3 @@
-import pandas as pd
-
 from data_loader import load_csvs, clean_transactions, filter_own_ibans
 
 

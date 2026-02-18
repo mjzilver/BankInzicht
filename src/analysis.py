@@ -41,9 +41,9 @@ def summarize_monthly_totals_by_label(summary_df):
 
 def filter_zakelijkheid(summary_df, zakelijkheid):
     if zakelijkheid == "Zakelijk":
-        return summary_df[summary_df["Zakelijk"] == True]
+        return summary_df[summary_df["Zakelijk"]]
     elif zakelijkheid == "Niet-zakelijk":
-        return summary_df[summary_df["Zakelijk"] == False]
+        return summary_df[~summary_df["Zakelijk"]]
     else:
         return summary_df
 

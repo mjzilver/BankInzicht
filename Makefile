@@ -4,28 +4,34 @@ ENTRY := $(SRC_DIR)/app.py
 VENV_DIR := venv
 REQS := requirements.txt
 PYTHON := python3
-PIP := $(VENV_DIR)/bin/pip
 PY := $(VENV_DIR)/bin/python
+PIP := $(PYTHON) -m pip
 
-.PHONY: install run format clean test
+.PHONY: install run format lint clean test
 
 all: run
 
 $(VENV_DIR):
 	$(PYTHON) -m venv $(VENV_DIR)
-	$(PIP) install -U pip
+	$(PY) -m pip install -U pip
 
 install: $(VENV_DIR)
-	$(PIP) install -r $(REQS)
+	$(PY) -m pip install -r $(REQS)
 
-run: $(VENV_DIR) install
+run: install
 	$(PY) $(ENTRY)
 
-test: $(VENV_DIR) install
-	PYTHONPATH=$(SRC_DIR) $(VENV_DIR)/bin/pytest -q
+test: install
+	PYTHONPATH=$(SRC_DIR) $(PY) -m pytest -q
 
-format: $(VENV_DIR)
-	find $(SRC_DIR) $(TEST_DIR) -name "*.py" -exec $(VENV_DIR)/bin/black {} +
+format:
+	black $(SRC_DIR) $(TEST_DIR)
+
+lint:
+	ruff check $(SRC_DIR) $(TEST_DIR)
+
+lint-fix:
+	ruff check --fix $(SRC_DIR) $(TEST_DIR)
 
 clean:
 	rm -rf $(VENV_DIR)

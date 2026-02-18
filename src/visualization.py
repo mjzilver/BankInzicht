@@ -109,7 +109,7 @@ def plot_time_line(df, title):
             )
 
     if (df["uitgaven"] != 0).any():
-        line = ax.plot(
+        ax.plot(
             df["Maand_NL"],
             df["uitgaven"],
             label="Uitgaven",

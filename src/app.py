@@ -16,18 +16,16 @@ from PyQt6.QtWidgets import (
     QMenu,
 )
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QSizePolicy, QComboBox
+from PyQt6.QtWidgets import QSizePolicy
 from PyQt6 import QtGui
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QFileDialog, QMessageBox
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
-import pickle
 from plot_window import PopoutPlotWindow
 
 from importer import load_initial_data, import_files
 from analysis import (
-    summarize_by_counterparty_per_month,
     summarize_monthly_totals_by_label,
 )
 import settings
@@ -44,8 +42,7 @@ from tabs.tijdlijn_chart import TijdlijnChartTab
 from visualization import (
     plot_time_line,
 )
-from utils import format_month
-from label_db import get_labels, init_db
+from label_db import init_db
 
 
 class FinanceApp(QWidget):

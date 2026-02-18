@@ -1,7 +1,7 @@
 import os
 from glob import glob
 import pandas as pd
-from typing import Tuple, Optional, List
+from typing import Tuple
 
 import settings
 from data_loader import (

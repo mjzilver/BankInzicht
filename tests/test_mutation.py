@@ -1,11 +1,9 @@
-import pandas as pd
 import pandas.testing as pdt
 
 from analysis import (
     aggregate_label_netto,
     aggregate_tegenpartij_label_zakelijk,
     aggregate_month_netto,
-    aggregate_tegenpartijen_for_label,
     summarize_by_counterparty_per_month,
     summarize_monthly_totals,
     summarize_monthly_totals_by_label,
@@ -56,7 +54,6 @@ def test_aggregate_month_netto_no_mutation_and_conserves_sum(summary_df):
 def test_summarize_by_counterparty_and_month_no_mutation_and_conserves_sum(
     transactions_df,
 ):
-    orig = transactions_df.copy(deep=True)
     summed = assert_no_mutation(summarize_by_counterparty_per_month, transactions_df)
 
     monthly_totals = summarize_monthly_totals(summed)
@@ -77,7 +74,6 @@ def test_summarize_monthly_totals_by_label_no_mutation_and_values(summary_df):
 
 def test_filter_zakelijkheid_no_mutation(summary_df, transactions_df):
     df = summary_df
-    orig = df.copy(deep=True)
     # aggregate_label_netto
     out = assert_no_mutation(aggregate_label_netto, df)
     assert abs(out["Netto"].sum() - df["Netto"].sum()) < 1e-9

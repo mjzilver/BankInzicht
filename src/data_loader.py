@@ -4,7 +4,7 @@ import os
 import shutil
 from glob import glob
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 from utils import format_zakelijk
 import settings
@@ -92,17 +92,6 @@ def _read_single_file(path):
             last_exc = e
             continue
     raise last_exc
-
-
-def load_files(file_paths):
-    dfs = []
-    for p in file_paths:
-        try:
-            dfs.append(_read_single_file(p))
-        except Exception:
-            # skip unreadable files; caller should handle reporting
-            continue
-    return pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
 
 
 def _copy_into_data_dir(src_paths, dest_dir=None):

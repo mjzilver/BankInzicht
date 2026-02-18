@@ -8,15 +8,13 @@ from settings import LABEL_DB
 def init_db():
     os.makedirs("data", exist_ok=True)
     with sqlite3.connect(LABEL_DB) as conn:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS labels (
                 Tegenpartij TEXT PRIMARY KEY,
                 Label TEXT,
                 Zakelijk BOOLEAN
             )
-        """
-        )
+        """)
 
 
 def save_label(tegenpartij, label, zakelijk):

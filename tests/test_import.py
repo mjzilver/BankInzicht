@@ -1,22 +1,7 @@
 from pathlib import Path
 
 import settings
-from data_loader import load_files, import_and_merge
-
-
-def test_load_files_reads_multiple(tmp_path):
-    p1 = tmp_path / "a.csv"
-    p2 = tmp_path / "b.csv"
-    p1.write_text(
-        "Date,Amount (EUR),Name / Description,Counterparty,Debit/credit,Account\n20260101,1234,Party A,IBAN1,Credit,ACC1\n"
-    )
-    p2.write_text(
-        "Date,Amount (EUR),Name / Description,Counterparty,Debit/credit,Account\n20260201,567,Party B,IBAN2,Debit,ACC1\n"
-    )
-
-    df = load_files([str(p1), str(p2)])
-    assert len(df) == 2
-    assert "Date" in df.columns
+from data_loader import import_and_merge
 
 
 def test_import_and_merge_copies_and_dedupes(tmp_path):
