@@ -91,6 +91,16 @@ class LabelsEditorTab(QWidget):
 
         self.search_box.textChanged.connect(self._on_search_text_changed)
         self.model.dataChanged.connect(self.on_model_changed)
+        self.search_box.installEventFilter(self)
+
+    def eventFilter(self, obj, event):
+        if obj == self.search_box:
+            from PyQt6.QtCore import QEvent
+            if event.type() == QEvent.Type.FocusIn:
+                self.table.clearSelection()
+                self.table.closePersistentEditor(self.table.currentIndex())
+                self.table.setCurrentIndex(self.table.rootIndex())
+        return super().eventFilter(obj, event)
 
     def _on_search_text_changed(self, t):
         if self.proxy:

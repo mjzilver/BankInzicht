@@ -19,7 +19,7 @@ class PopoutPlotWindow(QMainWindow):
 
         for action in self.toolbar.actions():
             text = (action.text() or "").lower()
-            if any(k in text for k in ("home", "back", "forward")):
+            if any(k in text for k in ("back", "forward")):
                 action.setVisible(False)
 
         layout.addWidget(self.toolbar)
