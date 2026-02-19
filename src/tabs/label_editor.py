@@ -1,11 +1,10 @@
 import pandas as pd
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QEvent, Qt
 from PyQt6.QtWidgets import (
     QAbstractItemView,
     QComboBox,
     QHBoxLayout,
     QHeaderView,
-    QLabel,
     QLineEdit,
     QStackedLayout,
     QStyledItemDelegate,
@@ -95,7 +94,6 @@ class LabelsEditorTab(QWidget):
 
     def eventFilter(self, obj, event):
         if obj == self.search_box:
-            from PyQt6.QtCore import QEvent
             if event.type() == QEvent.Type.FocusIn:
                 self.table.clearSelection()
                 self.table.closePersistentEditor(self.table.currentIndex())

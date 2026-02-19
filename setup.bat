@@ -1,5 +1,8 @@
 setlocal
 
+git fetch
+git pull
+
 IF NOT EXIST venv (
     python -m venv venv
 )
