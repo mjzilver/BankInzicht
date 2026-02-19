@@ -26,9 +26,7 @@ from PyQt6.QtWidgets import (
 
 import constants
 import settings
-from analysis import (
-    summarize_monthly_totals_by_label,
-)
+from analysis import summarize_monthly_totals_by_label
 from data_loader import DataFrameColumn
 from importer import import_files, load_initial_data
 from label_db import init_db
@@ -43,9 +41,7 @@ from tabs.maand_overzicht import MaandoverzichtTab
 from tabs.tegenpartij_chart import TegenpartijChartTab
 from tabs.tegenpartij_netto import TegenpartijNettoTab
 from tabs.tijdlijn_chart import TijdlijnChartTab
-from visualization import (
-    plot_time_line,
-)
+from visualization import plot_time_line
 
 
 class FinanceApp(QWidget):
@@ -57,27 +53,53 @@ class FinanceApp(QWidget):
         self.setAcceptDrops(True)
 
         init_db()
-
         self.df, self.summary_df = load_initial_data()
 
+        self.top_tabs_map = []
+        self.main_tabs_map = []
+
+        self._setup_ui()
+
+        if not self.summary_df.empty:
+            self.no_data_label.hide()
+            self.update_all_views()
+        else:
+            self.no_data_label.show()
+
+    def _setup_ui(self):
         main_layout = QVBoxLayout(self)
         self.setLayout(main_layout)
 
         splitter = QSplitter(Qt.Orientation.Vertical)
+        main_layout.addLayout(self._setup_top_controls())
+        main_layout.addWidget(splitter)
 
-        # Maand filter
-        top_controls = QHBoxLayout()
-        top_controls.addWidget(QLabel("Filter op maand:"))
+        self._init_tabs()
+        splitter.addWidget(self.top_tabs)
+        splitter.addWidget(self.main_tabs)
+
+        self.no_data_label = QLabel(
+            "Geen data geladen. Klik op 'Importeer bestanden' of sleep CSV-bestanden hierheen."
+        )
+        self.no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(self.no_data_label)
+
+    def _setup_top_controls(self):
+        layout = QHBoxLayout()
+        layout.addWidget(QLabel("Filter op maand:"))
 
         self.month_combo = QComboBox()
-
         if not self.summary_df.empty and {
             DataFrameColumn.MONTH.value,
             DataFrameColumn.MONTH_NL.value,
         }.issubset(set(self.summary_df.columns)):
-            months = self.summary_df.drop_duplicates(DataFrameColumn.MONTH.value)[
-                [DataFrameColumn.MONTH.value, DataFrameColumn.MONTH_NL.value]
-            ].sort_values(DataFrameColumn.MONTH.value)
+            months = (
+                self.summary_df.drop_duplicates(DataFrameColumn.MONTH.value)[
+                    [DataFrameColumn.MONTH.value, DataFrameColumn.MONTH_NL.value]
+                ]
+                .sort_values(DataFrameColumn.MONTH.value)
+                .reset_index(drop=True)
+            )
         else:
             months = pd.DataFrame(
                 columns=[DataFrameColumn.MONTH.value, DataFrameColumn.MONTH_NL.value]
@@ -88,89 +110,76 @@ class FinanceApp(QWidget):
         for m in months[DataFrameColumn.MONTH_NL.value]:
             self.month_combo.addItem(m)
         self.month_combo.currentTextChanged.connect(self.on_month_changed)
-        top_controls.addWidget(self.month_combo)
+        layout.addWidget(self.month_combo)
 
-        # Thema button
         self.theme_button = QPushButton(
             "Dark mode" if settings.UI_THEME == "light" else "Light mode"
         )
         self.theme_button.clicked.connect(self.toggle_theme)
-        top_controls.addWidget(self.theme_button)
+        layout.addWidget(self.theme_button)
 
-        # Import button
         self.import_button = QPushButton("Importeer bestanden")
         self.import_button.clicked.connect(self.on_import_button_clicked)
-        top_controls.addWidget(self.import_button)
+        layout.addWidget(self.import_button)
 
-        top_controls.addStretch()
-        main_layout.addLayout(top_controls)
+        layout.addStretch()
+        return layout
 
-        self.no_data_label = QLabel(
-            "Geen data geladen. Klik op 'Importeer bestanden' of sleep CSV-bestanden hierheen."
-        )
-        self.no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(self.no_data_label)
-
+    def _init_tabs(self):
         self.top_tabs = QTabWidget()
-
-        # Tegenpartij Netto
         self.tegenpartij_netto_tab = TegenpartijNettoTab(app=self)
-        self.top_tabs.addTab(self.tegenpartij_netto_tab, "Tegenpartij Netto")
-
-        # Labels Netto
         self.label_netto_tab = LabelNettoTab(app=self)
-        self.top_tabs.addTab(self.label_netto_tab, "Label Netto")
-
-        # Maand netto
         self.maand_netto_tab = MaandNettoTab(app=self)
+
+        self.top_tabs_map = [
+            self.tegenpartij_netto_tab,
+            self.label_netto_tab,
+            self.maand_netto_tab,
+        ]
+
+        self.top_tabs.addTab(self.tegenpartij_netto_tab, "Tegenpartij Netto")
+        self.top_tabs.addTab(self.label_netto_tab, "Label Netto")
         self.top_tabs.addTab(self.maand_netto_tab, "Maand Netto")
 
         self.main_tabs = QTabWidget()
-
-        splitter.addWidget(self.top_tabs)
-        splitter.addWidget(self.main_tabs)
-        main_layout.addWidget(splitter)
-
-        # Per Tegenpartij
         self.tegenpartij_chart_tab = TegenpartijChartTab(app=self)
-        self.main_tabs.addTab(self.tegenpartij_chart_tab, "Per Tegenpartij")
-
-        # Per Label
         self.label_tab = LabelChartTab(app=self)
-        self.main_tabs.addTab(self.label_tab, "Per Label")
-
-        # Maandoverzicht
         self.monthly_tab = MaandoverzichtTab(app=self)
-        self.main_tabs.addTab(self.monthly_tab, "Maandoverzicht")
-
-        # Tijdlijn
         self.tijdlijn_tab = TijdlijnChartTab(app=self)
-        self.main_tabs.addTab(self.tijdlijn_tab, "Tijdlijn")
-
-        # Tegenpartijen per Label
         self.label_tegenpartij_tab = LabelTegenpartijTab(app=self)
-        self.main_tabs.addTab(self.label_tegenpartij_tab, "Tegenpartijen per Label")
-
-        # Label Editor
         self.labels_editor_tab = LabelsEditorTab(app=self)
-        self.main_tabs.addTab(self.labels_editor_tab, "Label Editor")
-
-        # Label details viewer
         self.label_details_viewer = LabelDetailsViewer(app=self)
 
-        if not self.summary_df.empty:
-            self.no_data_label.hide()
-            self.update_all_views()
-        else:
-            self.no_data_label.show()
+        self.main_tabs_map = [
+            self.tegenpartij_chart_tab,
+            self.label_tab,
+            self.monthly_tab,
+            self.tijdlijn_tab,
+            self.label_tegenpartij_tab,
+            self.labels_editor_tab,
+        ]
+
+        self.main_tabs.addTab(self.tegenpartij_chart_tab, "Per Tegenpartij")
+        self.main_tabs.addTab(self.label_tab, "Per Label")
+        self.main_tabs.addTab(self.monthly_tab, "Maandoverzicht")
+        self.main_tabs.addTab(self.tijdlijn_tab, "Tijdlijn")
+        self.main_tabs.addTab(self.label_tegenpartij_tab, "Tegenpartijen per Label")
+        self.main_tabs.addTab(self.labels_editor_tab, "Label Editor")
+
+        self.top_tabs.currentChanged.connect(self._on_top_tab_changed)
+        self.main_tabs.currentChanged.connect(self._on_main_tab_changed)
+
+        for tab in self.top_tabs_map + self.main_tabs_map:
+            tab.dirty = False
 
     def get_filtered_by_selected_month(self):
         selected = self.month_combo.currentText()
         if selected == constants.MonthFilter.ALL.value:
             return self.summary_df, selected
-        maand_val = self.months_df[
-            self.months_df[DataFrameColumn.MONTH_NL.value] == selected
-        ][DataFrameColumn.MONTH.value].iloc[0]
+        maand_val = self.months_df.loc[
+            self.months_df[DataFrameColumn.MONTH_NL.value] == selected,
+            DataFrameColumn.MONTH.value,
+        ].iloc[0]
         return (
             self.summary_df[self.summary_df[DataFrameColumn.MONTH.value] == maand_val],
             selected,
@@ -183,24 +192,63 @@ class FinanceApp(QWidget):
         filtered_df, selected_month = self.get_filtered_by_selected_month()
         isAlleSelected = selected_month == constants.MonthFilter.ALL.value
 
-        # Update tables
-        self.tegenpartij_netto_tab.update(filtered_df)
-        self.label_netto_tab.update(filtered_df)
-        self.maand_netto_tab.update(filtered_df, isAlleSelected)
+        for i, tab in enumerate(self.top_tabs_map):
+            if i == self.top_tabs.currentIndex():
+                tab.dirty = False
+                (
+                    tab.update(filtered_df, isAlleSelected)
+                    if tab is self.maand_netto_tab
+                    else tab.update(filtered_df)
+                )
+            else:
+                tab.dirty = True
 
-        # Update plots
-        self.tegenpartij_chart_tab.update_plot(filtered_df, selected_month)
-        self.label_tab.update_plot(filtered_df, selected_month)
-        self.monthly_tab.update_plot()
+        for i, tab in enumerate(self.main_tabs_map):
+            if i == self.main_tabs.currentIndex():
+                tab.dirty = False
+                if tab is self.tegenpartij_chart_tab or tab is self.label_tab:
+                    tab.update_plot(filtered_df, selected_month)
+                elif tab is self.monthly_tab:
+                    tab.update_plot()
+                elif tab is self.label_tegenpartij_tab and getattr(
+                    tab, "current_label", None
+                ):
+                    tab.update_for_label(tab.current_label)
+                elif tab is self.labels_editor_tab:
+                    tab.populate()
+            else:
+                tab.dirty = True
 
-        # Refresh Tegenpartijen per Label tab if it currently shows a label
-        if getattr(self.label_tegenpartij_tab, "current_label", None):
-            self.label_tegenpartij_tab.update_for_label(
-                self.label_tegenpartij_tab.current_label
-            )
+    def _on_top_tab_changed(self, index):
+        filtered_df, selected_month = self.get_filtered_by_selected_month()
+        if 0 <= index < len(self.top_tabs_map):
+            tab = self.top_tabs_map[index]
+            if getattr(tab, "dirty", False):
+                (
+                    tab.update(
+                        filtered_df, selected_month == constants.MonthFilter.ALL.value
+                    )
+                    if tab is self.maand_netto_tab
+                    else tab.update(filtered_df)
+                )
+                tab.dirty = False
 
-        # Editor
-        self.labels_editor_tab.populate()
+    def _on_main_tab_changed(self, index):
+        filtered_df, selected_month = self.get_filtered_by_selected_month()
+        if 0 <= index < len(self.main_tabs_map):
+            tab = self.main_tabs_map[index]
+            if getattr(tab, "dirty", False):
+                if tab is self.tegenpartij_chart_tab or tab is self.label_tab:
+                    tab.update_plot(filtered_df, selected_month)
+                elif tab is self.monthly_tab:
+                    tab.update_plot()
+                elif tab is self.label_tegenpartij_tab and getattr(
+                    tab, "current_label", None
+                ):
+                    tab.update_for_label(tab.current_label)
+                elif tab is self.labels_editor_tab:
+                    tab.populate()
+                tab.dirty = False
 
     def set_canvas(self, tab_widget, fig, info_label=None, info_text=None):
         layout = tab_widget.layout()
@@ -228,9 +276,7 @@ class FinanceApp(QWidget):
         menu = QMenu()
         action_copy = menu.addAction("Kopieer grafiek")
         action_open = menu.addAction("Open in nieuw venster")
-
         action = menu.exec(canvas.mapToGlobal(position))
-
         if action == action_copy:
             self.copy_canvas_to_clipboard(canvas)
         elif action == action_open:
@@ -238,29 +284,22 @@ class FinanceApp(QWidget):
 
     def open_plot_window(self, canvas):
         fig_copy = copy.deepcopy(canvas.figure)
-
         win = PopoutPlotWindow(fig_copy, parent=self)
         win.show()
 
     def copy_canvas_to_clipboard(self, canvas):
-        fig = canvas.figure
-
         buf = io.BytesIO()
-        fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+        canvas.figure.savefig(buf, format="png", dpi=150, bbox_inches="tight")
         buf.seek(0)
-
         pixmap = QPixmap()
         pixmap.loadFromData(buf.read())
-
         QApplication.clipboard().setPixmap(pixmap)
-
         buf.close()
 
     def detail_context_menu(self, position, index_name, table_view, model):
         index = table_view.indexAt(position)
         if not index.isValid():
             return
-
         view_model = table_view.model()
         if hasattr(view_model, "mapToSource"):
             source_index = view_model.mapToSource(index)
@@ -268,31 +307,17 @@ class FinanceApp(QWidget):
         else:
             source_index = index
             source_model = view_model
-
         value = source_model._df.iloc[source_index.row()][index_name]
         filtered_df = self.summary_df[self.summary_df[index_name] == value].copy()
         monthly = summarize_monthly_totals_by_label(filtered_df)
-
         avg = filtered_df[DataFrameColumn.NETTO.value].mean()
         fig = plot_time_line(
             monthly, title=f"Tijdlijn voor: {value} - Gemiddeld: {avg:.2f} per maand"
         )
         self.set_canvas(self.tijdlijn_tab, fig)
-
         self.main_tabs.setCurrentWidget(self.tijdlijn_tab)
-
         self.tijdlijn_tab.info_label.setText("")
         self.tijdlijn_tab.info_label.hide()
-
-    def show_empty(self):
-        layout = QVBoxLayout(self)
-        msg = QLabel(
-            "Geen transactiebestanden gevonden.\n"
-            "Plaats CSV-bestanden in de data-map en start de applicatie opnieuw."
-        )
-        msg.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(msg)
-        self.setLayout(layout)
 
     def on_import_button_clicked(self):
         start_dir = (
@@ -306,9 +331,8 @@ class FinanceApp(QWidget):
             start_dir,
             "CSV Files (*.csv);;All Files (*)",
         )
-        if not files:
-            return
-        self._handle_import_files(files)
+        if files:
+            self._handle_import_files(files)
 
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
@@ -317,12 +341,13 @@ class FinanceApp(QWidget):
             event.ignore()
 
     def dropEvent(self, event):
-        urls = event.mimeData().urls()
-        paths = [u.toLocalFile() for u in urls if u.isLocalFile()]
-        csvs = [p for p in paths if p.lower().endswith(".csv")]
-        if not csvs:
-            return
-        self._handle_import_files(csvs)
+        csvs = [
+            u.toLocalFile()
+            for u in event.mimeData().urls()
+            if u.isLocalFile() and u.toLocalFile().lower().endswith(".csv")
+        ]
+        if csvs:
+            self._handle_import_files(csvs)
 
     def _handle_import_files(self, file_paths: list[str]):
         try:
@@ -336,22 +361,19 @@ class FinanceApp(QWidget):
     def toggle_theme(self):
         new_theme = "dark" if settings.UI_THEME == "light" else "light"
         settings.set_theme(new_theme)
-
         style_path = os.path.join("style", f"{new_theme}.qss")
         if os.path.exists(style_path):
-            with open(style_path, "r") as f:
-                self.window().setStyleSheet(f.read())
-
+            with open(style_path) as f:
+                self.setStyleSheet(f.read())
         self.theme_button.setText("Dark mode" if new_theme == "light" else "Light mode")
 
 
 def main():
     app = QApplication(sys.argv)
-
     styleFile = os.path.join("style", f"{settings.UI_THEME}.qss")
-    with open(styleFile, "r") as f:
-        app.setStyleSheet(f.read())
-
+    if os.path.exists(styleFile):
+        with open(styleFile) as f:
+            app.setStyleSheet(f.read())
     win = FinanceApp()
     win.show()
     sys.exit(app.exec())

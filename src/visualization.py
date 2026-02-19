@@ -172,10 +172,12 @@ def plot_monthly_overview(df):
         subset = subset.set_index(DataFrameColumn.MONTH_NL.value).reindex(months)
 
         # Fill NaN values with 0 for numeric columns
-        num_cols = subset.select_dtypes(include='number').columns
+        num_cols = subset.select_dtypes(include="number").columns
         subset[num_cols] = subset[num_cols].fillna(0)
         # Fill empty labels with "geen label"
-        subset[DataFrameColumn.LABEL.value] = subset[DataFrameColumn.LABEL.value].fillna(Label.GEEN.value)
+        subset[DataFrameColumn.LABEL.value] = subset[
+            DataFrameColumn.LABEL.value
+        ].fillna(Label.GEEN.value)
 
         inkomsten = subset[DataFrameColumn.INCOME.value].values
         uitgaven = subset[DataFrameColumn.EXPENSE.value].abs().values

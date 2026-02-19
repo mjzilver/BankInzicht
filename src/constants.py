@@ -8,6 +8,7 @@ class MonthFilter(Enum):
 class Label(Enum):
     GEEN = "Geen label"
 
+
 class Zakelijkheid(Enum):
     ALL = "Alle"
     BUSINESS = "Zakelijk"

@@ -9,9 +9,9 @@ from typing import List
 import pandas as pd
 
 import settings
+from constants import Label
 from settings import IGNORED_ACCOUNT_NAMES
 from utils import format_zakelijk
-from constants import Label
 
 CSV_GLOB = "*.csv"
 
@@ -262,7 +262,10 @@ def clean_transactions(df):
 def merge_and_clean_labels(summary_df, label_df):
     df = summary_df.merge(label_df, on=DataFrameColumn.COUNTERPARTY.value, how="left")
     df[DataFrameColumn.LABEL.value] = (
-        df[DataFrameColumn.LABEL.value].fillna("").str.strip().replace("", Label.GEEN.value)
+        df[DataFrameColumn.LABEL.value]
+        .fillna("")
+        .str.strip()
+        .replace("", Label.GEEN.value)
     )
     df[DataFrameColumn.BUSINESS.value] = (
         df[DataFrameColumn.BUSINESS.value].fillna(False).astype(bool)

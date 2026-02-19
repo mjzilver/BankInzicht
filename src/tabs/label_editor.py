@@ -199,7 +199,9 @@ class LabelsEditorTab(QWidget):
                 current_zak = None
 
             normalized_label = label.strip() if label else ""
-            normalized_label = normalized_label if normalized_label else Label.GEEN.value
+            normalized_label = (
+                normalized_label if normalized_label else Label.GEEN.value
+            )
 
             if current_label == normalized_label and current_zak == bool(zakelijk):
                 continue
