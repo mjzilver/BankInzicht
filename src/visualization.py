@@ -3,6 +3,7 @@ import numpy as np
 from matplotlib import cm
 from matplotlib.colors import to_hex
 
+from constants import Label
 from data_loader import DataFrameColumn
 
 
@@ -68,7 +69,7 @@ def plot_counterparty_netto(filtered_df, selected_month, highlight=None):
 def plot_label_netto(filtered_df, selected_month, highlight=None):
     df = filtered_df.copy()
     df[DataFrameColumn.LABEL.value] = df[DataFrameColumn.LABEL.value].replace(
-        "", "geen label"
+        "", Label.GEEN.value
     )
 
     grouped = (
@@ -151,7 +152,7 @@ def plot_monthly_overview(df):
     fig, ax = plt.subplots(figsize=(12, 5))
 
     df[DataFrameColumn.LABEL.value] = df[DataFrameColumn.LABEL.value].replace(
-        "", "geen label"
+        "", Label.GEEN.value
     )
 
     months = df[DataFrameColumn.MONTH_NL.value].unique()
@@ -168,9 +169,13 @@ def plot_monthly_overview(df):
 
     for label in labels:
         subset = df[df[DataFrameColumn.LABEL.value] == label]
-        subset = subset.set_index(DataFrameColumn.MONTH_NL.value).reindex(
-            months, fill_value=0
-        )
+        subset = subset.set_index(DataFrameColumn.MONTH_NL.value).reindex(months)
+
+        # Fill NaN values with 0 for numeric columns
+        num_cols = subset.select_dtypes(include='number').columns
+        subset[num_cols] = subset[num_cols].fillna(0)
+        # Fill empty labels with "geen label"
+        subset[DataFrameColumn.LABEL.value] = subset[DataFrameColumn.LABEL.value].fillna(Label.GEEN.value)
 
         inkomsten = subset[DataFrameColumn.INCOME.value].values
         uitgaven = subset[DataFrameColumn.EXPENSE.value].abs().values

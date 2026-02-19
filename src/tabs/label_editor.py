@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from constants import Zakelijkheid
+from constants import Label, Zakelijkheid
 from data_loader import DataFrameColumn
 from dataframe import DataFrameModel
 from label_db import get_labels, save_label
@@ -199,7 +199,7 @@ class LabelsEditorTab(QWidget):
                 current_zak = None
 
             normalized_label = label.strip() if label else ""
-            normalized_label = normalized_label if normalized_label else "geen label"
+            normalized_label = normalized_label if normalized_label else Label.GEEN.value
 
             if current_label == normalized_label and current_zak == bool(zakelijk):
                 continue
