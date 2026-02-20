@@ -2,7 +2,6 @@ SRC_DIR := src
 TEST_DIR := tests
 ENTRY := $(SRC_DIR)/app.py
 VENV_DIR := venv
-REQS := requirements.txt
 PYTHON := python3
 PY := $(VENV_DIR)/bin/python
 PIP := $(PYTHON) -m pip
@@ -16,13 +15,13 @@ $(VENV_DIR):
 	$(PY) -m pip install -U pip
 
 install: $(VENV_DIR)
-	$(PY) -m pip install -r $(REQS)
+	$(PY) -m pip install -e .
 
 run: install
 	$(PY) $(ENTRY)
 
 test: install
-	PYTHONPATH=$(SRC_DIR) $(PY) -m pytest -q
+	$(PY) -m pytest -q
 
 format:
 	black $(SRC_DIR) $(TEST_DIR)

@@ -1,5 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "BankInzicht"
+version = "0.1.0"
+description = "Financieel overzicht en analyse van banktransacties."
+requires-python = ">=3.10"
+
+dependencies = [
+	"pandas",
+	"matplotlib",
+	"PyQt6",
+	"toml"
+]
+
+[project.optional-dependencies]
+dev = [
+	"black",
+	"pytest",
+	"ruff"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.black]
+target-version = ["py310"]
+
 [tool.ruff]
 
 [tool.ruff.lint]
-select = ["I"] 
-
+per-file-ignores = { "tests/*" = ["PLR2004"] }
+select = [
+    "F",
+    "W",
+    "C90",
+    "I",
+    "UP",
+    "A",
+    "B",
+    "SIM",
+    "PL",
+    "RET",
+    "ARG",
+]

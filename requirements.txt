@@ -1,6 +1,0 @@
-pandas
-matplotlib
-PyQt6
-toml
-black
-pytest

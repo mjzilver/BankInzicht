@@ -8,6 +8,6 @@ IF NOT EXIST venv (
 )
 call venv\Scripts\activate
 
-pip install -r requirements.txt
+pip install .
 
 python src\app.py

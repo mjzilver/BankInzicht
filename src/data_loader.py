@@ -4,7 +4,6 @@ import shutil
 from enum import Enum
 from glob import glob
 from pathlib import Path
-from typing import List
 
 import pandas as pd
 
@@ -90,7 +89,7 @@ def _read_single_file(path):
     for enc in encodings:
         try:
             return pd.read_csv(path, sep=",", dtype=str, encoding=enc).rename(
-                columns=str.strip
+                columns=str.strip,
             )
         except Exception as e:
             last_exc = e
@@ -124,7 +123,7 @@ def _copy_into_data_dir(src_paths, dest_dir=None):
 
 def import_and_merge(existing_df, file_paths, copy_files=True):
     if not file_paths:
-        return existing_df if existing_df is not None else pd.DataFrame()
+        return (existing_df if existing_df is not None else pd.DataFrame(), [])
 
     read_paths = list(file_paths)
     if copy_files:
@@ -133,40 +132,76 @@ def import_and_merge(existing_df, file_paths, copy_files=True):
         except Exception:
             read_paths = list(file_paths)
 
-    cleaned_frames: List[pd.DataFrame] = []
-    for p in read_paths:
+    cleaned_frames: list[pd.DataFrame] = []
+    import_messages = []
+    for orig_path, p in zip(file_paths, read_paths):
         try:
             df_raw = _read_single_file(p)
             cleaned = clean_transactions(df_raw)
             if not cleaned.empty:
+                if existing_df is not None and not existing_df.empty:
+                    cleaned = cleaned.merge(
+                        existing_df[
+                            [
+                                DataFrameColumn.DATE.value,
+                                DataFrameColumn.AMOUNT.value,
+                                DataFrameColumn.COUNTERPARTY.value,
+                            ]
+                        ],
+                        on=[
+                            DataFrameColumn.DATE.value,
+                            DataFrameColumn.AMOUNT.value,
+                            DataFrameColumn.COUNTERPARTY.value,
+                        ],
+                        how="left",
+                        indicator=True,
+                    )
+                    cleaned = cleaned[cleaned["_merge"] == "left_only"]
+                    cleaned = cleaned.drop(columns=["_merge"])
+                    added = len(cleaned)
+                else:
+                    added = len(cleaned)
                 cleaned_frames.append(cleaned)
-        except Exception:
+                import_messages.append(
+                    f"geïmporteerd {os.path.basename(orig_path)}: {added} nieuwe regels toegevoegd",
+                )
+            else:
+                import_messages.append(
+                    f"geïmporteerd {os.path.basename(orig_path)}: 0 regels toegevoegd (geen geldige data)",
+                )
+        except Exception as e:
+            import_messages.append(
+                f"geïmporteerd {os.path.basename(orig_path)} mislukt: {str(e)}",
+            )
             continue
 
     if not cleaned_frames:
-        return existing_df if existing_df is not None else pd.DataFrame()
+        return (
+            existing_df if existing_df is not None else pd.DataFrame(),
+            import_messages,
+        )
 
     cleaned = pd.concat(cleaned_frames, ignore_index=True)
-
     cleaned = cleaned.drop_duplicates(
         subset=[
             DataFrameColumn.DATE.value,
             DataFrameColumn.AMOUNT.value,
             DataFrameColumn.COUNTERPARTY.value,
-        ]
+        ],
     )
 
     if existing_df is None or existing_df.empty:
-        return cleaned
+        return (cleaned, import_messages)
 
     merged = pd.concat([existing_df, cleaned], ignore_index=True)
-    return merged.drop_duplicates(
+    merged = merged.drop_duplicates(
         subset=[
             DataFrameColumn.DATE.value,
             DataFrameColumn.AMOUNT.value,
             DataFrameColumn.COUNTERPARTY.value,
-        ]
+        ],
     )
+    return (merged, import_messages)
 
 
 def detect_bank_format(df):
@@ -228,11 +263,11 @@ def clean_transactions(df):
 
     if cfg["date_format"]:
         df[DataFrameColumn.DATE.value] = pd.to_datetime(
-            df[DataFrameColumn.DATE.value], format=cfg["date_format"], errors="coerce"
+            df[DataFrameColumn.DATE.value], format=cfg["date_format"], errors="coerce",
         )
     else:
         df[DataFrameColumn.DATE.value] = pd.to_datetime(
-            df[DataFrameColumn.DATE.value], errors="coerce"
+            df[DataFrameColumn.DATE.value], errors="coerce",
         )
 
     if cfg["amount_processor"]:
@@ -255,7 +290,7 @@ def clean_transactions(df):
             DataFrameColumn.DATE.value,
             DataFrameColumn.AMOUNT.value,
             DataFrameColumn.COUNTERPARTY.value,
-        ]
+        ],
     )
 
 
@@ -271,6 +306,6 @@ def merge_and_clean_labels(summary_df, label_df):
         df[DataFrameColumn.BUSINESS.value].fillna(False).astype(bool)
     )
     df[DataFrameColumn.BUSINESS_NL.value] = df[DataFrameColumn.BUSINESS.value].apply(
-        format_zakelijk
+        format_zakelijk,
     )
     return df

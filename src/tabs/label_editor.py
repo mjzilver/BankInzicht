@@ -35,7 +35,7 @@ class ComboBoxDelegate(QStyledItemDelegate):
             val = index.model().data(index, Qt.ItemDataRole.DisplayRole)
         if isinstance(val, bool):
             editor.setCurrentText(
-                Zakelijkheid.BUSINESS.value if val else Zakelijkheid.NON_BUSINESS.value
+                Zakelijkheid.BUSINESS.value if val else Zakelijkheid.NON_BUSINESS.value,
             )
         else:
             editor.setCurrentText(str(val))
@@ -63,7 +63,7 @@ class LabelsEditorTab(QWidget):
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.AllEditTriggers)
         self.table.setSortingEnabled(True)
         self.table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
+            QHeaderView.ResizeMode.Stretch,
         )
 
         self.stacked_layout = QStackedLayout()
@@ -76,7 +76,7 @@ class LabelsEditorTab(QWidget):
                 DataFrameColumn.COUNTERPARTY.value,
                 DataFrameColumn.LABEL.value,
                 DataFrameColumn.BUSINESS.value,
-            ]
+            ],
         )
         self.model = DataFrameModel(empty_df, parent=self, editable=True)
         self.proxy = self.model.createProxy(parent=self)
@@ -133,7 +133,7 @@ class LabelsEditorTab(QWidget):
     def update_labels_in_place(self):
         labels_df = get_labels()
         parties = sorted(
-            self.app.summary_df[DataFrameColumn.COUNTERPARTY.value].str.strip().unique()
+            self.app.summary_df[DataFrameColumn.COUNTERPARTY.value].str.strip().unique(),
         )
         labels_lookup = {
             row[DataFrameColumn.COUNTERPARTY.value]: row
@@ -157,7 +157,7 @@ class LabelsEditorTab(QWidget):
                     DataFrameColumn.COUNTERPARTY.value: tp,
                     DataFrameColumn.LABEL.value: label,
                     DataFrameColumn.BUSINESS.value: zakelijk,
-                }
+                },
             )
         new_df = pd.DataFrame(
             rows,
@@ -187,12 +187,12 @@ class LabelsEditorTab(QWidget):
             mask = self.app.summary_df[DataFrameColumn.COUNTERPARTY.value] == tp
             if mask.any():
                 current_label = self.app.summary_df.loc[
-                    mask, DataFrameColumn.LABEL.value
+                    mask, DataFrameColumn.LABEL.value,
                 ].iloc[0]
                 current_zak = bool(
                     self.app.summary_df.loc[mask, DataFrameColumn.BUSINESS.value].iloc[
                         0
-                    ]
+                    ],
                 )
             else:
                 current_label = None
@@ -211,7 +211,7 @@ class LabelsEditorTab(QWidget):
                 normalized_label
             )
             self.app.summary_df.loc[mask, DataFrameColumn.BUSINESS.value] = bool(
-                zakelijk
+                zakelijk,
             )
             self.app.summary_df.loc[mask, DataFrameColumn.BUSINESS_NL.value] = (
                 Zakelijkheid.BUSINESS.value

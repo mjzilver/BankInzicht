@@ -1,6 +1,5 @@
 import os
 from glob import glob
-from typing import Tuple
 
 import pandas as pd
 
@@ -18,7 +17,7 @@ from utils import format_month
 
 
 # Returns tuple of (transactions_df, summary_df)
-def load_initial_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
+def load_initial_data() -> tuple[pd.DataFrame, pd.DataFrame]:
     data_dir = settings.DATA_DIR
     files = glob(os.path.join(data_dir, "*.csv")) if os.path.exists(data_dir) else []
 
@@ -51,9 +50,9 @@ def load_initial_data() -> Tuple[pd.DataFrame, pd.DataFrame]:
 
 # Returns tuple of (transactions_df, summary_df)
 def import_files(
-    existing_df, file_paths, copy_files=True
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    df = import_and_merge(
+    existing_df, file_paths, copy_files=True,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    df, import_messages = import_and_merge(
         existing_df if existing_df is not None and not existing_df.empty else None,
         file_paths,
         copy_files=copy_files,
@@ -67,4 +66,4 @@ def import_files(
         ].apply(format_month)
         summary_df = merge_and_clean_labels(summary_df, get_labels())
 
-    return df, summary_df
+    return df, summary_df, import_messages

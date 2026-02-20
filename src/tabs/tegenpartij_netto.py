@@ -11,7 +11,7 @@ class TegenpartijNettoTab(TableTabBase):
         super().__init__(app, show_search=True, editable=False)
         self.table_view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table_view.customContextMenuRequested.connect(
-            self.tegenpartij_detail_context_menu
+            self.tegenpartij_detail_context_menu,
         )
 
     def setDataFrame(self, df):
@@ -37,5 +37,5 @@ class TegenpartijNettoTab(TableTabBase):
 
         if action == action_tijdlijn:
             self.app.detail_context_menu(
-                position, "Tegenpartij", self.table_view, self.model
+                position, "Tegenpartij", self.table_view, self.model,
             )

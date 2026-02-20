@@ -9,7 +9,7 @@ class TijdlijnChartTab(QWidget):
         self.setLayout(layout)
 
         self.info_label = QLabel(
-            "Klik op een label of tegenpartij in bovenste tabellen om de maandelijkse Tijdlijn te zien."
+            "Klik op een label of tegenpartij in bovenste tabellen om de maandelijkse Tijdlijn te zien.",
         )
         self.info_label.setWordWrap(True)
         layout.addWidget(self.info_label)

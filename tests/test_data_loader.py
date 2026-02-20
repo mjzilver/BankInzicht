@@ -1,5 +1,4 @@
-from data_loader import clean_transactions, filter_own_ibans, load_csvs
-from src.data_loader import DataFrameColumn
+from data_loader import DataFrameColumn, clean_transactions, filter_own_ibans, load_csvs
 
 
 def test_load_csvs_concatenates(tmp_path):
@@ -7,10 +6,10 @@ def test_load_csvs_concatenates(tmp_path):
     p1 = d / "a.csv"
     p2 = d / "b.csv"
     p1.write_text(
-        "Date,Amount (EUR),Name / Description,Counterparty,Debit/credit,Account\n20260101,1234,Party A,IBAN1,Credit,ACC1\n"
+        "Date,Amount (EUR),Name / Description,Counterparty,Debit/credit,Account\n20260101,1234,Party A,IBAN1,Credit,ACC1\n",
     )
     p2.write_text(
-        "Date,Amount (EUR),Name / Description,Counterparty,Debit/credit,Account\n20260201,567,Party B,IBAN2,Debit,ACC1\n"
+        "Date,Amount (EUR),Name / Description,Counterparty,Debit/credit,Account\n20260201,567,Party B,IBAN2,Debit,ACC1\n",
     )
 
     df = load_csvs(str(d))

@@ -11,7 +11,7 @@ class LabelNettoTab(TableTabBase):
         super().__init__(app, show_search=True, editable=False)
         self.table_view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table_view.customContextMenuRequested.connect(
-            self.label_detail_context_menu
+            self.label_detail_context_menu,
         )
 
     def setDataFrame(self, df):

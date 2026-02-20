@@ -22,7 +22,7 @@ class MaandoverzichtTab(QWidget):
                 Zakelijkheid.ALL.value,
                 Zakelijkheid.BUSINESS.value,
                 Zakelijkheid.NON_BUSINESS.value,
-            ]
+            ],
         )
         self.zakelijkheid_combo.currentTextChanged.connect(self.update_plot)
         filter_layout.addWidget(self.zakelijkheid_combo)

@@ -2,7 +2,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from src.constants import Zakelijkheid
+from constants import Zakelijkheid
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def summary_df():
                 Zakelijkheid.NON_BUSINESS.value,
             ],
             "Netto": [100.0, -30.0, 50.0, -20.0],
-        }
+        },
     )
 
 
@@ -32,7 +32,7 @@ def transactions_df():
             "Maand": ["2026-01", "2026-01", "2026-02"],
             "Tegenpartij": ["A", "A", "B"],
             "Bedrag": [70.0, 0.0, 50.0],
-        }
+        },
     )
 
 
@@ -47,7 +47,7 @@ def raw_transactions():
             "Tegenpartij": ["CP A", "CP B", "CP C"],
             "Debit/credit": ["Debit", "Credit", "Credit"],
             "Account": ["ACC1", "ACC1", "ACC1"],
-        }
+        },
     )
 
 
@@ -62,7 +62,7 @@ def raw_transactions_ing():
             "Counterparty": ["CP A", "CP B", "CP C"],
             "Debit/credit": ["Debit", "Credit", "Credit"],
             "Account": ["ACC1", "ACC1", "ACC1"],
-        }
+        },
     )
 
 
@@ -75,7 +75,7 @@ def own_ibans_df():
             "date": ["2026-01-01"] * 3,
             "Bedrag": [10, 20, 30],
             "Tegenpartij": ["A", "B", "C"],
-        }
+        },
     )
 
 

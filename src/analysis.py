@@ -19,7 +19,7 @@ def summarize_by_counterparty_per_month(df):
         DataFrameColumn.NETTO.value,
     ]
     monthly[DataFrameColumn.MONTH.value] = monthly[DataFrameColumn.MONTH.value].astype(
-        str
+        str,
     )
     return monthly
 
@@ -28,7 +28,7 @@ def summarize_monthly_totals(summary_df):
     df = summary_df.copy()
     if DataFrameColumn.MONTH_NL.value not in df.columns:
         df[DataFrameColumn.MONTH_NL.value] = df[DataFrameColumn.MONTH.value].apply(
-            format_month
+            format_month,
         )
 
     return (
@@ -40,7 +40,7 @@ def summarize_monthly_totals(summary_df):
                 DataFrameColumn.INCOME.value: lambda x: x[x > 0].sum(),
                 DataFrameColumn.EXPENSE.value: lambda x: x[x < 0].sum(),
                 DataFrameColumn.NETTO.value: "sum",
-            }
+            },
         )
         .reset_index()
         .sort_values(DataFrameColumn.MONTH.value)
@@ -50,21 +50,21 @@ def summarize_monthly_totals(summary_df):
 def summarize_monthly_totals_by_label(summary_df):
     return (
         summary_df.groupby(
-            [DataFrameColumn.MONTH.value, DataFrameColumn.LABEL.value], as_index=False
+            [DataFrameColumn.MONTH.value, DataFrameColumn.LABEL.value], as_index=False,
         )[DataFrameColumn.NETTO.value]
         .agg(
             **{
                 DataFrameColumn.INCOME.value: lambda x: x[x > 0].sum(),
                 DataFrameColumn.EXPENSE.value: lambda x: x[x < 0].sum(),
                 DataFrameColumn.NETTO.value: "sum",
-            }
+            },
         )
         .assign(
             **{
                 DataFrameColumn.MONTH_NL.value: lambda df: df[
                     DataFrameColumn.MONTH.value
-                ].apply(format_month)
-            }
+                ].apply(format_month),
+            },
         )
         .sort_values(DataFrameColumn.MONTH.value)
     )
@@ -101,7 +101,7 @@ def aggregate_tegenpartij_label_zakelijk(df):
         ]
     ].copy()
     temp = temp.rename(
-        columns={DataFrameColumn.BUSINESS_NL.value: DataFrameColumn.BUSINESS.value}
+        columns={DataFrameColumn.BUSINESS_NL.value: DataFrameColumn.BUSINESS.value},
     )
     result = (
         temp.groupby(
@@ -120,7 +120,7 @@ def aggregate_tegenpartij_label_zakelijk(df):
 
 def aggregate_month_netto(df, include_year_totals=False):
     grouped_by_month = df.groupby(
-        [DataFrameColumn.MONTH.value, DataFrameColumn.MONTH_NL.value], as_index=False
+        [DataFrameColumn.MONTH.value, DataFrameColumn.MONTH_NL.value], as_index=False,
     )[DataFrameColumn.NETTO.value].sum()
 
     if include_year_totals:
@@ -149,11 +149,11 @@ def aggregate_month_netto(df, include_year_totals=False):
     else:
         return (
             grouped_by_month.sort_values(
-                by=DataFrameColumn.MONTH.value, ascending=False
+                by=DataFrameColumn.MONTH.value, ascending=False,
             )
             .drop(columns=DataFrameColumn.MONTH.value)
             .rename(
-                columns={DataFrameColumn.MONTH_NL.value: DataFrameColumn.MONTH.value}
+                columns={DataFrameColumn.MONTH_NL.value: DataFrameColumn.MONTH.value},
             )
         )
 

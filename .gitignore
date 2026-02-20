@@ -6,3 +6,4 @@ build/
 *.spec
 settings.toml
 .pytest_cache/
+*egg-info/

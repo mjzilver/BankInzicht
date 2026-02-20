@@ -14,7 +14,7 @@ class LabelTegenpartijTab(QWidget):
         self.setLayout(layout)
 
         self.info_label = QLabel(
-            "Klik met de rechtermuisknop op een label in de bovenste tabellen om de tegenpartijen per label te zien."
+            "Klik met de rechtermuisknop op een label in de bovenste tabellen om de tegenpartijen per label te zien.",
         )
         self.info_label.setWordWrap(True)
         layout.addWidget(self.info_label)
@@ -30,7 +30,7 @@ class LabelTegenpartijTab(QWidget):
         )
 
         tegenpartij_summary, total, count = aggregate_tegenpartijen_for_label(
-            target_df, label_value
+            target_df, label_value,
         )
 
         title = f"Tegenpartijen voor label: {label_value}"

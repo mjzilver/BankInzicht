@@ -69,7 +69,7 @@ def plot_counterparty_netto(filtered_df, selected_month, highlight=None):
 def plot_label_netto(filtered_df, selected_month, highlight=None):
     df = filtered_df.copy()
     df[DataFrameColumn.LABEL.value] = df[DataFrameColumn.LABEL.value].replace(
-        "", Label.GEEN.value
+        "", Label.GEEN.value,
     )
 
     grouped = (
@@ -102,8 +102,8 @@ def plot_time_line(df, title):
             color="green",
             marker="o",
         )
-        for i, (x, y) in enumerate(
-            zip(df[DataFrameColumn.MONTH_NL.value], df[DataFrameColumn.INCOME.value])
+        for _, (x, y) in enumerate(
+            zip(df[DataFrameColumn.MONTH_NL.value], df[DataFrameColumn.INCOME.value]),
         ):
             ax.annotate(
                 f"{y:,.2f}€",
@@ -123,8 +123,8 @@ def plot_time_line(df, title):
             color="red",
             marker="o",
         )
-        for i, (x, y) in enumerate(
-            zip(df[DataFrameColumn.MONTH_NL.value], df[DataFrameColumn.EXPENSE.value])
+        for _, (x, y) in enumerate(
+            zip(df[DataFrameColumn.MONTH_NL.value], df[DataFrameColumn.EXPENSE.value]),
         ):
             ax.annotate(
                 f"{y:,.2f}€",
@@ -152,7 +152,7 @@ def plot_monthly_overview(df):
     fig, ax = plt.subplots(figsize=(12, 5))
 
     df[DataFrameColumn.LABEL.value] = df[DataFrameColumn.LABEL.value].replace(
-        "", Label.GEEN.value
+        "", Label.GEEN.value,
     )
 
     months = df[DataFrameColumn.MONTH_NL.value].unique()

@@ -30,7 +30,7 @@ class TableTabBase(QWidget):
         self.table_view = QTableView()
         self.table_view.setSortingEnabled(True)
         self.table_view.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
+            QHeaderView.ResizeMode.Stretch,
         )
         layout.addWidget(self.table_view)
 
@@ -40,7 +40,7 @@ class TableTabBase(QWidget):
 
         if self.search_box is not None:
             self.search_box.textChanged.connect(
-                lambda t: self.proxy.setFilterWildcard(f"*{t}*")
+                lambda t: self.proxy.setFilterWildcard(f"*{t}*"),
             )
 
     def setDataFrame(self, df):

@@ -10,8 +10,8 @@ from analysis import (
     summarize_monthly_totals,
     summarize_monthly_totals_by_label,
 )
-from src.constants import Zakelijkheid
-from src.data_loader import DataFrameColumn
+from constants import Zakelijkheid
+from data_loader import DataFrameColumn
 
 
 def test_aggregate_label_netto_no_mutation_and_conserves_sum(summary_df):
@@ -67,7 +67,7 @@ def test_summarize_by_counterparty_and_month_no_mutation_and_conserves_sum(
     assert (
         abs(
             monthly_totals[DataFrameColumn.NETTO.value].sum()
-            - transactions_df[DataFrameColumn.AMOUNT.value].sum()
+            - transactions_df[DataFrameColumn.AMOUNT.value].sum(),
         )
         < 1e-9
     )
@@ -93,7 +93,7 @@ def test_filter_zakelijkheid_no_mutation(summary_df, transactions_df):
     assert (
         abs(
             out[DataFrameColumn.NETTO.value].sum()
-            - df[DataFrameColumn.NETTO.value].sum()
+            - df[DataFrameColumn.NETTO.value].sum(),
         )
         < 1e-9
     )
@@ -103,7 +103,7 @@ def test_filter_zakelijkheid_no_mutation(summary_df, transactions_df):
     assert (
         abs(
             out[DataFrameColumn.NETTO.value].sum()
-            - df[DataFrameColumn.NETTO.value].sum()
+            - df[DataFrameColumn.NETTO.value].sum(),
         )
         < 1e-9
     )
@@ -113,7 +113,7 @@ def test_filter_zakelijkheid_no_mutation(summary_df, transactions_df):
     assert (
         abs(
             out1[DataFrameColumn.NETTO.value].sum()
-            - df[DataFrameColumn.NETTO.value].sum()
+            - df[DataFrameColumn.NETTO.value].sum(),
         )
         < 1e-9
     )
@@ -132,7 +132,7 @@ def test_filter_zakelijkheid_no_mutation(summary_df, transactions_df):
     assert (
         abs(
             monthly_totals[DataFrameColumn.NETTO.value].sum()
-            - transactions_df[DataFrameColumn.AMOUNT.value].sum()
+            - transactions_df[DataFrameColumn.AMOUNT.value].sum(),
         )
         < 1e-9
     )

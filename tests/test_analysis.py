@@ -8,7 +8,7 @@ from analysis import (
     summarize_by_counterparty_per_month,
     summarize_monthly_totals,
 )
-from src.data_loader import DataFrameColumn
+from data_loader import DataFrameColumn
 
 
 def test_aggregate_label_and_counterparty_and_month(summary_df):

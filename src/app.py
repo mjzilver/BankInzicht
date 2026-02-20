@@ -79,7 +79,7 @@ class FinanceApp(QWidget):
         splitter.addWidget(self.main_tabs)
 
         self.no_data_label = QLabel(
-            "Geen data geladen. Klik op 'Importeer bestanden' of sleep CSV-bestanden hierheen."
+            "Geen data geladen. Klik op 'Importeer bestanden' of sleep CSV-bestanden hierheen.",
         )
         self.no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(self.no_data_label)
@@ -102,7 +102,7 @@ class FinanceApp(QWidget):
             )
         else:
             months = pd.DataFrame(
-                columns=[DataFrameColumn.MONTH.value, DataFrameColumn.MONTH_NL.value]
+                columns=[DataFrameColumn.MONTH.value, DataFrameColumn.MONTH_NL.value],
             )
 
         self.months_df = months
@@ -113,7 +113,7 @@ class FinanceApp(QWidget):
         layout.addWidget(self.month_combo)
 
         self.theme_button = QPushButton(
-            "Dark mode" if settings.UI_THEME == "light" else "Light mode"
+            "Dark mode" if settings.UI_THEME == "light" else "Light mode",
         )
         self.theme_button.clicked.connect(self.toggle_theme)
         layout.addWidget(self.theme_button)
@@ -211,7 +211,7 @@ class FinanceApp(QWidget):
                 elif tab is self.monthly_tab:
                     tab.update_plot()
                 elif tab is self.label_tegenpartij_tab and getattr(
-                    tab, "current_label", None
+                    tab, "current_label", None,
                 ):
                     tab.update_for_label(tab.current_label)
                 elif tab is self.labels_editor_tab:
@@ -226,7 +226,7 @@ class FinanceApp(QWidget):
             if getattr(tab, "dirty", False):
                 (
                     tab.update(
-                        filtered_df, selected_month == constants.MonthFilter.ALL.value
+                        filtered_df, selected_month == constants.MonthFilter.ALL.value,
                     )
                     if tab is self.maand_netto_tab
                     else tab.update(filtered_df)
@@ -243,7 +243,7 @@ class FinanceApp(QWidget):
                 elif tab is self.monthly_tab:
                     tab.update_plot()
                 elif tab is self.label_tegenpartij_tab and getattr(
-                    tab, "current_label", None
+                    tab, "current_label", None,
                 ):
                     tab.update_for_label(tab.current_label)
                 elif tab is self.labels_editor_tab:
@@ -260,12 +260,12 @@ class FinanceApp(QWidget):
         if fig is not None:
             canvas = FigureCanvasQTAgg(fig)
             policy = QSizePolicy(
-                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding,
             )
             canvas.setSizePolicy(policy)
             canvas.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             canvas.customContextMenuRequested.connect(
-                lambda pos: self.show_canvas_context_menu(canvas, pos)
+                lambda pos: self.show_canvas_context_menu(canvas, pos),
             )
             layout.addWidget(canvas)
             layout.setStretchFactor(canvas, 1)
@@ -312,7 +312,7 @@ class FinanceApp(QWidget):
         monthly = summarize_monthly_totals_by_label(filtered_df)
         avg = filtered_df[DataFrameColumn.NETTO.value].mean()
         fig = plot_time_line(
-            monthly, title=f"Tijdlijn voor: {value} - Gemiddeld: {avg:.2f} per maand"
+            monthly, title=f"Tijdlijn voor: {value} - Gemiddeld: {avg:.2f} per maand",
         )
         self.set_canvas(self.tijdlijn_tab, fig)
         self.main_tabs.setCurrentWidget(self.tijdlijn_tab)
@@ -351,10 +351,14 @@ class FinanceApp(QWidget):
 
     def _handle_import_files(self, file_paths: list[str]):
         try:
-            self.df, self.summary_df = import_files(
-                self.df if not self.df.empty else None, file_paths, copy_files=True
+            self.df, self.summary_df, import_messages = import_files(
+                self.df if not self.df.empty else None, file_paths, copy_files=True,
             )
             self.update_all_views()
+            if import_messages:
+                QMessageBox.information(
+                    self, "Import resultaat", "\n".join(import_messages),
+                )
         except Exception as e:
             QMessageBox.critical(self, "Import fout", str(e))
 
