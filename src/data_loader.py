@@ -7,10 +7,9 @@ from pathlib import Path
 
 import pandas as pd
 
-import settings
 from constants import Label
-from utils import format_zakelijk
 from settings import settings
+from utils import format_zakelijk
 
 CSV_GLOB = "*.csv"
 

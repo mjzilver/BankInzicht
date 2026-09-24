@@ -25,12 +25,12 @@ from PyQt6.QtWidgets import (
 )
 
 import constants
-from settings import settings
 from analysis import summarize_monthly_totals_by_label
 from data_loader import DataFrameColumn
 from importer import import_files, load_initial_data
 from label_db import init_db
 from plot_window import PopoutPlotWindow
+from settings import settings
 from tabs.label_chart import LabelChartTab
 from tabs.label_details import LabelDetailsViewer
 from tabs.label_editor import LabelsEditorTab

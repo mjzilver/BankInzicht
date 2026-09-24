@@ -3,7 +3,6 @@ from glob import glob
 
 import pandas as pd
 
-from settings import settings
 from analysis import summarize_by_counterparty_per_month
 from data_loader import (
     DataFrameColumn,
@@ -13,6 +12,7 @@ from data_loader import (
     merge_and_clean_labels,
 )
 from label_db import get_labels
+from settings import settings
 from utils import format_month
 
 
