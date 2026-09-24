@@ -24,7 +24,7 @@ class ComboBoxDelegate(QStyledItemDelegate):
         super().__init__(parent)
         self.items = items
 
-    def createEditor(self, parent, option, index):
+    def createEditor(self, parent):
         cb = QComboBox(parent)
         cb.addItems(self.items)
         return cb
@@ -93,11 +93,10 @@ class LabelsEditorTab(QWidget):
         self.search_box.installEventFilter(self)
 
     def eventFilter(self, obj, event):
-        if obj == self.search_box:
-            if event.type() == QEvent.Type.FocusIn:
-                self.table.clearSelection()
-                self.table.closePersistentEditor(self.table.currentIndex())
-                self.table.setCurrentIndex(self.table.rootIndex())
+        if obj == self.search_box and event.type() == QEvent.Type.FocusIn:
+            self.table.clearSelection()
+            self.table.closePersistentEditor(self.table.currentIndex())
+            self.table.setCurrentIndex(self.table.rootIndex())
         return super().eventFilter(obj, event)
 
     def _on_search_text_changed(self, t):
@@ -133,7 +132,9 @@ class LabelsEditorTab(QWidget):
     def update_labels_in_place(self):
         labels_df = get_labels()
         parties = sorted(
-            self.app.summary_df[DataFrameColumn.COUNTERPARTY.value].str.strip().unique(),
+            self.app.summary_df[DataFrameColumn.COUNTERPARTY.value]
+            .str.strip()
+            .unique(),
         )
         labels_lookup = {
             row[DataFrameColumn.COUNTERPARTY.value]: row
@@ -172,7 +173,7 @@ class LabelsEditorTab(QWidget):
         if not current_df.equals(new_df):
             self.model.setDataFrame(new_df)
 
-    def on_model_changed(self, topLeft, bottomRight, roles=None):
+    def on_model_changed(self, topLeft, bottomRight):
         df = self.model.getDataFrame()
 
         start = topLeft.row()
@@ -182,12 +183,13 @@ class LabelsEditorTab(QWidget):
             tp = df.iloc[r][DataFrameColumn.COUNTERPARTY.value]
             label = df.iloc[r][DataFrameColumn.LABEL.value]
             zak_text = df.iloc[r][DataFrameColumn.BUSINESS.value]
-            zakelijk = True if zak_text == Zakelijkheid.BUSINESS.value else False
+            zakelijk = zak_text == Zakelijkheid.BUSINESS.value
 
             mask = self.app.summary_df[DataFrameColumn.COUNTERPARTY.value] == tp
             if mask.any():
                 current_label = self.app.summary_df.loc[
-                    mask, DataFrameColumn.LABEL.value,
+                    mask,
+                    DataFrameColumn.LABEL.value,
                 ].iloc[0]
                 current_zak = bool(
                     self.app.summary_df.loc[mask, DataFrameColumn.BUSINESS.value].iloc[

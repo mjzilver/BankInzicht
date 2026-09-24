@@ -3,7 +3,7 @@ from glob import glob
 
 import pandas as pd
 
-import settings
+from settings import settings
 from analysis import summarize_by_counterparty_per_month
 from data_loader import (
     DataFrameColumn,
@@ -18,7 +18,7 @@ from utils import format_month
 
 # Returns tuple of (transactions_df, summary_df)
 def load_initial_data() -> tuple[pd.DataFrame, pd.DataFrame]:
-    data_dir = settings.DATA_DIR
+    data_dir = settings.data_dir
     files = glob(os.path.join(data_dir, "*.csv")) if os.path.exists(data_dir) else []
 
     if files:
@@ -50,7 +50,9 @@ def load_initial_data() -> tuple[pd.DataFrame, pd.DataFrame]:
 
 # Returns tuple of (transactions_df, summary_df)
 def import_files(
-    existing_df, file_paths, copy_files=True,
+    existing_df,
+    file_paths,
+    copy_files=True,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     df, import_messages = import_and_merge(
         existing_df if existing_df is not None and not existing_df.empty else None,

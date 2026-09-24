@@ -9,8 +9,8 @@ import pandas as pd
 
 import settings
 from constants import Label
-from settings import IGNORED_ACCOUNT_NAMES
 from utils import format_zakelijk
+from settings import settings
 
 CSV_GLOB = "*.csv"
 
@@ -134,7 +134,7 @@ def import_and_merge(existing_df, file_paths, copy_files=True):
 
     cleaned_frames: list[pd.DataFrame] = []
     import_messages = []
-    for orig_path, p in zip(file_paths, read_paths):
+    for orig_path, p in zip(file_paths, read_paths, strict=False):
         try:
             df_raw = _read_single_file(p)
             cleaned = clean_transactions(df_raw)
@@ -244,8 +244,8 @@ def filter_own_ibans(df):
 
 
 def shared_cleaning(df, counterparty_col):
-    if IGNORED_ACCOUNT_NAMES:
-        pattern = "|".join(map(re.escape, IGNORED_ACCOUNT_NAMES))
+    if settings.ignored_account_names:
+        pattern = "|".join(map(re.escape, settings.ignored_account_names))
         df = df[~df[counterparty_col].str.contains(pattern, case=False, na=False)]
     return df
 
@@ -263,11 +263,14 @@ def clean_transactions(df):
 
     if cfg["date_format"]:
         df[DataFrameColumn.DATE.value] = pd.to_datetime(
-            df[DataFrameColumn.DATE.value], format=cfg["date_format"], errors="coerce",
+            df[DataFrameColumn.DATE.value],
+            format=cfg["date_format"],
+            errors="coerce",
         )
     else:
         df[DataFrameColumn.DATE.value] = pd.to_datetime(
-            df[DataFrameColumn.DATE.value], errors="coerce",
+            df[DataFrameColumn.DATE.value],
+            errors="coerce",
         )
 
     if cfg["amount_processor"]:

@@ -46,9 +46,8 @@ class DataFrameModel(QAbstractTableModel):
         if not index.isValid():
             return Qt.ItemFlag.NoItemFlags
         flags = Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled
-        if self._editable:
-            if index.column() != 0:
-                flags |= Qt.ItemFlag.ItemIsEditable
+        if self._editable and index.column() != 0:
+            flags |= Qt.ItemFlag.ItemIsEditable
         return flags
 
     def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
@@ -73,8 +72,7 @@ class DataFrameModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.DisplayRole:
             if orientation == Qt.Orientation.Horizontal:
                 return str(self._df.columns[section])
-            else:
-                return str(section)
+            return str(section)
         return QVariant()
 
     def sort(self, column, order):
@@ -96,7 +94,7 @@ class DataFrameModel(QAbstractTableModel):
         proxy = DataFrameSortFilterProxy(parent)
         proxy.setSourceModel(self)
         proxy.setSortRole(Qt.ItemDataRole.UserRole)
-        
+
         cs = (
             Qt.CaseSensitivity.CaseSensitive
             if case_sensitive

@@ -25,7 +25,7 @@ from PyQt6.QtWidgets import (
 )
 
 import constants
-import settings
+from settings import settings
 from analysis import summarize_monthly_totals_by_label
 from data_loader import DataFrameColumn
 from importer import import_files, load_initial_data
@@ -113,7 +113,7 @@ class FinanceApp(QWidget):
         layout.addWidget(self.month_combo)
 
         self.theme_button = QPushButton(
-            "Dark mode" if settings.UI_THEME == "light" else "Light mode",
+            "Dark mode" if settings.theme == "light" else "Light mode",
         )
         self.theme_button.clicked.connect(self.toggle_theme)
         layout.addWidget(self.theme_button)
@@ -211,7 +211,9 @@ class FinanceApp(QWidget):
                 elif tab is self.monthly_tab:
                     tab.update_plot()
                 elif tab is self.label_tegenpartij_tab and getattr(
-                    tab, "current_label", None,
+                    tab,
+                    "current_label",
+                    None,
                 ):
                     tab.update_for_label(tab.current_label)
                 elif tab is self.labels_editor_tab:
@@ -226,7 +228,8 @@ class FinanceApp(QWidget):
             if getattr(tab, "dirty", False):
                 (
                     tab.update(
-                        filtered_df, selected_month == constants.MonthFilter.ALL.value,
+                        filtered_df,
+                        selected_month == constants.MonthFilter.ALL.value,
                     )
                     if tab is self.maand_netto_tab
                     else tab.update(filtered_df)
@@ -243,7 +246,9 @@ class FinanceApp(QWidget):
                 elif tab is self.monthly_tab:
                     tab.update_plot()
                 elif tab is self.label_tegenpartij_tab and getattr(
-                    tab, "current_label", None,
+                    tab,
+                    "current_label",
+                    None,
                 ):
                     tab.update_for_label(tab.current_label)
                 elif tab is self.labels_editor_tab:
@@ -260,7 +265,8 @@ class FinanceApp(QWidget):
         if fig is not None:
             canvas = FigureCanvasQTAgg(fig)
             policy = QSizePolicy(
-                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding,
+                QSizePolicy.Policy.Expanding,
+                QSizePolicy.Policy.Expanding,
             )
             canvas.setSizePolicy(policy)
             canvas.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -312,7 +318,8 @@ class FinanceApp(QWidget):
         monthly = summarize_monthly_totals_by_label(filtered_df)
         avg = filtered_df[DataFrameColumn.NETTO.value].mean()
         fig = plot_time_line(
-            monthly, title=f"Tijdlijn voor: {value} - Gemiddeld: {avg:.2f} per maand",
+            monthly,
+            title=f"Tijdlijn voor: {value} - Gemiddeld: {avg:.2f} per maand",
         )
         self.set_canvas(self.tijdlijn_tab, fig)
         self.main_tabs.setCurrentWidget(self.tijdlijn_tab)
@@ -352,12 +359,16 @@ class FinanceApp(QWidget):
     def _handle_import_files(self, file_paths: list[str]):
         try:
             self.df, self.summary_df, import_messages = import_files(
-                self.df if not self.df.empty else None, file_paths, copy_files=True,
+                self.df if not self.df.empty else None,
+                file_paths,
+                copy_files=True,
             )
             self.update_all_views()
             if import_messages:
                 QMessageBox.information(
-                    self, "Import resultaat", "\n".join(import_messages),
+                    self,
+                    "Import resultaat",
+                    "\n".join(import_messages),
                 )
         except Exception as e:
             QMessageBox.critical(self, "Import fout", str(e))
@@ -374,7 +385,7 @@ class FinanceApp(QWidget):
 
 def main():
     app = QApplication(sys.argv)
-    styleFile = os.path.join("style", f"{settings.UI_THEME}.qss")
+    styleFile = os.path.join("style", f"{settings.theme}.qss")
     if os.path.exists(styleFile):
         with open(styleFile) as f:
             app.setStyleSheet(f.read())

@@ -30,7 +30,8 @@ class LabelTegenpartijTab(QWidget):
         )
 
         tegenpartij_summary, total, count = aggregate_tegenpartijen_for_label(
-            target_df, label_value,
+            target_df,
+            label_value,
         )
 
         title = f"Tegenpartijen voor label: {label_value}"

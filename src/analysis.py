@@ -50,7 +50,8 @@ def summarize_monthly_totals(summary_df):
 def summarize_monthly_totals_by_label(summary_df):
     return (
         summary_df.groupby(
-            [DataFrameColumn.MONTH.value, DataFrameColumn.LABEL.value], as_index=False,
+            [DataFrameColumn.MONTH.value, DataFrameColumn.LABEL.value],
+            as_index=False,
         )[DataFrameColumn.NETTO.value]
         .agg(
             **{
@@ -73,14 +74,13 @@ def summarize_monthly_totals_by_label(summary_df):
 def filter_zakelijkheid(summary_df, zakelijkheid):
     if zakelijkheid == Zakelijkheid.BUSINESS.value:
         return summary_df[summary_df[DataFrameColumn.BUSINESS.value]]
-    elif zakelijkheid == Zakelijkheid.NON_BUSINESS.value:
+    if zakelijkheid == Zakelijkheid.NON_BUSINESS.value:
         return summary_df[~summary_df[DataFrameColumn.BUSINESS.value]]
-    else:
-        return summary_df
+    return summary_df
 
 
 def aggregate_label_netto(df):
-    result = (
+    return (
         df.copy()
         .groupby([DataFrameColumn.LABEL.value], as_index=False)[
             DataFrameColumn.NETTO.value
@@ -88,7 +88,6 @@ def aggregate_label_netto(df):
         .sum()
         .sort_values(by=DataFrameColumn.NETTO.value, ascending=False)
     )
-    return result
 
 
 def aggregate_tegenpartij_label_zakelijk(df):
@@ -103,7 +102,7 @@ def aggregate_tegenpartij_label_zakelijk(df):
     temp = temp.rename(
         columns={DataFrameColumn.BUSINESS_NL.value: DataFrameColumn.BUSINESS.value},
     )
-    result = (
+    return (
         temp.groupby(
             [
                 DataFrameColumn.COUNTERPARTY.value,
@@ -115,12 +114,12 @@ def aggregate_tegenpartij_label_zakelijk(df):
         .sum()
         .sort_values(by=DataFrameColumn.NETTO.value, ascending=False)
     )
-    return result
 
 
 def aggregate_month_netto(df, include_year_totals=False):
     grouped_by_month = df.groupby(
-        [DataFrameColumn.MONTH.value, DataFrameColumn.MONTH_NL.value], as_index=False,
+        [DataFrameColumn.MONTH.value, DataFrameColumn.MONTH_NL.value],
+        as_index=False,
     )[DataFrameColumn.NETTO.value].sum()
 
     if include_year_totals:
@@ -142,20 +141,19 @@ def aggregate_month_netto(df, include_year_totals=False):
             by=[JAAR_COL, IS_TOTAL_COL, DataFrameColumn.MONTH.value],
             ascending=[False, False, False],
         ).drop(columns=[IS_TOTAL_COL, JAAR_COL], errors="ignore")
-        display_df = combined[
+        return combined[
             [DataFrameColumn.MONTH_NL.value, DataFrameColumn.NETTO.value]
         ].rename(columns={DataFrameColumn.MONTH_NL.value: DataFrameColumn.MONTH.value})
-        return display_df
-    else:
-        return (
-            grouped_by_month.sort_values(
-                by=DataFrameColumn.MONTH.value, ascending=False,
-            )
-            .drop(columns=DataFrameColumn.MONTH.value)
-            .rename(
-                columns={DataFrameColumn.MONTH_NL.value: DataFrameColumn.MONTH.value},
-            )
+    return (
+        grouped_by_month.sort_values(
+            by=DataFrameColumn.MONTH.value,
+            ascending=False,
         )
+        .drop(columns=DataFrameColumn.MONTH.value)
+        .rename(
+            columns={DataFrameColumn.MONTH_NL.value: DataFrameColumn.MONTH.value},
+        )
+    )
 
 
 def aggregate_tegenpartijen_for_label(summary_df, label_value):

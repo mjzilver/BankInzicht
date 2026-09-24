@@ -3,12 +3,12 @@ import sqlite3
 
 import pandas as pd
 
-from settings import LABEL_DB
+from settings import settings
 
 
 def init_db():
     os.makedirs("data", exist_ok=True)
-    with sqlite3.connect(LABEL_DB) as conn:
+    with sqlite3.connect(settings.label_db) as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS labels (
                 Tegenpartij TEXT PRIMARY KEY,
@@ -19,7 +19,7 @@ def init_db():
 
 
 def save_label(tegenpartij, label, zakelijk):
-    with sqlite3.connect(LABEL_DB) as conn:
+    with sqlite3.connect(settings.label_db) as conn:
         conn.execute(
             """
             INSERT INTO labels (Tegenpartij, Label, Zakelijk)
@@ -33,5 +33,5 @@ def save_label(tegenpartij, label, zakelijk):
 
 
 def get_labels():
-    with sqlite3.connect(LABEL_DB) as conn:
+    with sqlite3.connect(settings.label_db) as conn:
         return pd.read_sql_query("SELECT * FROM labels", conn)

@@ -37,5 +37,8 @@ class TegenpartijNettoTab(TableTabBase):
 
         if action == action_tijdlijn:
             self.app.detail_context_menu(
-                position, "Tegenpartij", self.table_view, self.model,
+                position,
+                "Tegenpartij",
+                self.table_view,
+                self.model,
             )

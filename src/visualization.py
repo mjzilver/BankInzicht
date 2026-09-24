@@ -7,7 +7,7 @@ from constants import Label
 from data_loader import DataFrameColumn
 
 
-def plot_horizontal_bar(df, value_col, category_col, title="", highlight=None):
+def plot_horizontal_bar(df, value_col, category_col, title=""):
     df = df.copy()
     df[category_col] = df[category_col].replace("", f"geen {category_col.lower()}")
 
@@ -56,20 +56,20 @@ def plot_horizontal_bar(df, value_col, category_col, title="", highlight=None):
     return fig
 
 
-def plot_counterparty_netto(filtered_df, selected_month, highlight=None):
+def plot_counterparty_netto(filtered_df, selected_month):
     return plot_horizontal_bar(
         filtered_df,
         value_col=DataFrameColumn.NETTO.value,
         category_col=DataFrameColumn.COUNTERPARTY.value,
         title=f"Netto per Tegenpartij - {selected_month}",
-        highlight=highlight,
     )
 
 
-def plot_label_netto(filtered_df, selected_month, highlight=None):
+def plot_label_netto(filtered_df, selected_month):
     df = filtered_df.copy()
     df[DataFrameColumn.LABEL.value] = df[DataFrameColumn.LABEL.value].replace(
-        "", Label.GEEN.value,
+        "",
+        Label.GEEN.value,
     )
 
     grouped = (
@@ -88,7 +88,6 @@ def plot_label_netto(filtered_df, selected_month, highlight=None):
         value_col=DataFrameColumn.NETTO.value,
         category_col=DataFrameColumn.LABEL.value,
         title=f"Netto per Label - {selected_month}",
-        highlight=highlight,
     )
 
 
@@ -103,7 +102,11 @@ def plot_time_line(df, title):
             marker="o",
         )
         for _, (x, y) in enumerate(
-            zip(df[DataFrameColumn.MONTH_NL.value], df[DataFrameColumn.INCOME.value]),
+            zip(
+                df[DataFrameColumn.MONTH_NL.value],
+                df[DataFrameColumn.INCOME.value],
+                strict=False,
+            ),
         ):
             ax.annotate(
                 f"{y:,.2f}€",
@@ -124,7 +127,11 @@ def plot_time_line(df, title):
             marker="o",
         )
         for _, (x, y) in enumerate(
-            zip(df[DataFrameColumn.MONTH_NL.value], df[DataFrameColumn.EXPENSE.value]),
+            zip(
+                df[DataFrameColumn.MONTH_NL.value],
+                df[DataFrameColumn.EXPENSE.value],
+                strict=False,
+            ),
         ):
             ax.annotate(
                 f"{y:,.2f}€",
@@ -152,7 +159,8 @@ def plot_monthly_overview(df):
     fig, ax = plt.subplots(figsize=(12, 5))
 
     df[DataFrameColumn.LABEL.value] = df[DataFrameColumn.LABEL.value].replace(
-        "", Label.GEEN.value,
+        "",
+        Label.GEEN.value,
     )
 
     months = df[DataFrameColumn.MONTH_NL.value].unique()

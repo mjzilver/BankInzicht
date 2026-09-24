@@ -24,5 +24,6 @@ def format_month(period_str):
 def format_zakelijk(zakelijk):
     if zakelijk is True or zakelijk == 1:
         return Zakelijkheid.BUSINESS.value
-    elif zakelijk is False or zakelijk == 0:
+    if zakelijk is False or zakelijk == 0:
         return Zakelijkheid.NON_BUSINESS.value
+    return None

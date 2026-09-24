@@ -1,51 +1,89 @@
-import os
+from pathlib import Path
+from threading import Lock
 
 import toml
 import tomllib
 
 DEFAULT_CONFIG = {
-    "bank": {"ignored_account_names": []},
-    "data": {"data_dir": "data", "label_db": "data/labels.db"},
-    "ui": {"theme": "light"},
+    "bank": {
+        "ignored_account_names": [],
+    },
+    "data": {
+        "data_dir": "data",
+        "label_db": "data/labels.db",
+    },
+    "ui": {
+        "theme": "light",
+    },
 }
 
 
-def load_settings(filepath="settings.toml"):
-    if not os.path.exists(filepath):
-        save_settings(filepath, DEFAULT_CONFIG)
-        return DEFAULT_CONFIG
-    with open(filepath, "rb") as f:
-        return tomllib.load(f)
+class Settings:
+    _instance = None
+    _lock = Lock()
+
+    def __new__(cls, filepath="settings.toml"):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    instance = super().__new__(cls)
+                    instance._filepath = Path(filepath)
+                    instance._load()
+                    cls._instance = instance
+        return cls._instance
+
+    def _load(self):
+        if not self._filepath.exists():
+            self._config = DEFAULT_CONFIG.copy()
+            self.save()
+            return
+
+        with self._filepath.open("rb") as f:
+            self._config = tomllib.load(f)
+
+    def save(self):
+        self._filepath.write_text(
+            toml.dumps(self._config),
+            encoding="utf-8",
+        )
+
+    @property
+    def ignored_account_names(self):
+        return self._config["bank"]["ignored_account_names"]
+
+    @ignored_account_names.setter
+    def ignored_account_names(self, value):
+        self._config["bank"]["ignored_account_names"] = value
+        self.save()
+
+    @property
+    def data_dir(self):
+        return self._config["data"]["data_dir"]
+
+    @data_dir.setter
+    def data_dir(self, value):
+        self._config["data"]["data_dir"] = value
+        self.save()
+
+    @property
+    def label_db(self):
+        return self._config["data"]["label_db"]
+
+    @label_db.setter
+    def label_db(self, value):
+        self._config["data"]["label_db"] = value
+        self.save()
+
+    @property
+    def theme(self):
+        return self._config["ui"]["theme"]
+
+    @theme.setter
+    def theme(self, value):
+        if value not in ("light", "dark"):
+            raise ValueError("Theme must be 'dark' or 'light'")
+        self._config["ui"]["theme"] = value
+        self.save()
 
 
-def reload_globals():
-    global IGNORED_ACCOUNT_NAMES, DATA_DIR, LABEL_DB, UI_THEME
-    IGNORED_ACCOUNT_NAMES = settings.get("bank", {}).get("ignored_account_names", [])
-    DATA_DIR = settings.get("data", {}).get("data_dir")
-    if DATA_DIR is None:
-        raise ValueError("Missing 'data_dir' in [data] section of settings.toml")
-    LABEL_DB = settings.get("data", {}).get("label_db")
-    if LABEL_DB is None:
-        raise ValueError("Missing 'label_db' in [data] section of settings.toml")
-    UI_THEME = settings.get("ui", {}).get("theme", "light")
-
-
-def save_settings(filepath="settings.toml", data=None):
-    global settings
-    if data is None:
-        data = settings
-    with open(filepath, "w") as f:
-        f.write(toml.dumps(data))
-    settings = load_settings(filepath)
-    reload_globals()
-
-
-def set_theme(theme: str):
-    if theme not in ("dark", "light"):
-        raise ValueError("Theme must be 'dark' or 'light'")
-    settings.setdefault("ui", {})["theme"] = theme
-    save_settings()
-
-
-settings = load_settings()
-reload_globals()
+settings = Settings()
