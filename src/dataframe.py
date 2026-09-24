@@ -29,14 +29,17 @@ class DataFrameModel(QAbstractTableModel):
         if not index.isValid():
             return QVariant()
 
+        val = self._df.iloc[index.row(), index.column()]
+
         if role == Qt.ItemDataRole.EditRole:
-            val = self._df.iloc[index.row(), index.column()]
             return val
         if role == Qt.ItemDataRole.DisplayRole:
-            val = self._df.iloc[index.row(), index.column()]
             if isinstance(val, float):
                 return f"{val:,.2f}"
             return str(val)
+        if role == Qt.ItemDataRole.UserRole:
+            return val
+
         return QVariant()
 
     def flags(self, index):
@@ -90,8 +93,10 @@ class DataFrameModel(QAbstractTableModel):
         self.layoutChanged.emit()
 
     def createProxy(self, parent=None, case_sensitive=False):
-        proxy = QSortFilterProxyModel(parent)
+        proxy = DataFrameSortFilterProxy(parent)
         proxy.setSourceModel(self)
+        proxy.setSortRole(Qt.ItemDataRole.UserRole)
+        
         cs = (
             Qt.CaseSensitivity.CaseSensitive
             if case_sensitive
@@ -100,3 +105,14 @@ class DataFrameModel(QAbstractTableModel):
         proxy.setFilterCaseSensitivity(cs)
         proxy.setFilterKeyColumn(-1)
         return proxy
+
+
+class DataFrameSortFilterProxy(QSortFilterProxyModel):
+    def lessThan(self, left, right):
+        left_value = left.data(Qt.ItemDataRole.UserRole)
+        right_value = right.data(Qt.ItemDataRole.UserRole)
+
+        try:
+            return bool(left_value < right_value)
+        except TypeError:
+            return str(left_value).casefold() < str(right_value).casefold()

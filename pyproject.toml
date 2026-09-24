@@ -9,10 +9,10 @@ description = "Financieel overzicht en analyse van banktransacties."
 requires-python = ">=3.10"
 
 dependencies = [
-	"pandas",
-	"matplotlib",
-	"PyQt6",
-	"toml"
+    "pandas==3.0.6",
+    "matplotlib==3.11.2",
+    "PyQt6==6.11.0",
+    "toml==0.10.2"
 ]
 
 [project.optional-dependencies]
